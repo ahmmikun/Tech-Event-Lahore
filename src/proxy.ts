@@ -1,15 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   try {
     return await updateSession(request);
   } catch (error) {
-    console.error("Fatal middleware error:", error);
+    console.error("Fatal proxy error:", error);
     return NextResponse.next({ request });
   }
 }
-
 
 export const config = {
   matcher: [

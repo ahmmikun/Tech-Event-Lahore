@@ -5,7 +5,15 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
-import { Sparkles, Mail, Lock, User, AlertCircle, ArrowRight, Loader2 } from "lucide-react";
+import {
+  Sparkles,
+  Mail,
+  Lock,
+  User,
+  AlertCircle,
+  ArrowRight,
+  Loader2,
+} from "lucide-react";
 
 function SignUpForm() {
   const router = useRouter();
@@ -16,17 +24,17 @@ function SignUpForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
+  const [githubLoading, setGitHubLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const handleGoogleLogin = async () => {
-    setGoogleLoading(true);
+  const handleGitHubLogin = async () => {
+    setGitHubLoading(true);
     setErrorMessage("");
     try {
       const supabase = createClient();
       const origin = window.location.origin;
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
+        provider: "github",
         options: {
           redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}`,
         },
@@ -35,11 +43,15 @@ function SignUpForm() {
         setErrorMessage(error.message);
         toast.error(error.message);
       }
-    } catch (err: any) {
-      setErrorMessage(err.message || "Failed to initiate Google sign in");
-      toast.error(err.message || "Failed to initiate Google sign in");
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Failed to initiate GitHub sign in";
+      setErrorMessage(message);
+      toast.error(message);
     } finally {
-      setGoogleLoading(false);
+      setGitHubLoading(false);
     }
   };
 
@@ -78,9 +90,10 @@ function SignUpForm() {
         router.push(next);
         router.refresh();
       }
-    } catch (err: any) {
-      setErrorMessage(err.message || "Sign up failed");
-      toast.error(err.message || "Sign up failed");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Sign up failed";
+      setErrorMessage(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -114,32 +127,29 @@ function SignUpForm() {
 
       {/* Card */}
       <div className="p-8 rounded-3xl bg-[#0e1424] border border-slate-800 shadow-2xl space-y-6">
-        {/* Google Sign In Button */}
+        {/* GitHub Sign In Button */}
         <button
           type="button"
-          onClick={handleGoogleLogin}
-          disabled={googleLoading || loading}
+          onClick={handleGitHubLogin}
+          disabled={githubLoading || loading}
           className="w-full py-3.5 px-4 rounded-xl font-bold text-sm text-slate-100 bg-slate-900 border-2 border-slate-700 hover:border-slate-500 hover:bg-slate-800 transition-all flex items-center justify-center gap-3 shadow-md active:scale-98 disabled:opacity-60 cursor-pointer"
         >
-          <svg className="w-5 h-5" viewBox="0 0 24 24">
-            <path
-              fill="#EA4335"
-              d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.3 9 5 12 5z"
-            />
-            <path
-              fill="#4285F4"
-              d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5.1 3.7-8.8z"
-            />
-            <path
-              fill="#FBBC05"
-              d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.8 0-1.3.2-2.1.4-2.8L1.9 6.3C.7 8.7 0 10.8 0 12s.7 3.3 1.9 5.7l3.7-2.9z"
-            />
-            <path
-              fill="#34A853"
-              d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.3-6.4-5.2L1.9 16C3.7 19.7 7.5 23 12 23z"
-            />
-          </svg>
-          <span>{googleLoading ? "Connecting with Google..." : "Sign up with Google"}</span>
+          {githubLoading ? (
+            <Loader2 className="w-5 h-5 animate-spin" aria-hidden="true" />
+          ) : (
+            <svg
+              className="w-5 h-5 fill-current"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path d="M12 .75a11.25 11.25 0 0 0-3.558 21.923c.563.104.768-.244.768-.542 0-.267-.01-.975-.015-1.914-3.13.68-3.791-1.508-3.791-1.508-.512-1.3-1.25-1.646-1.25-1.646-1.022-.699.077-.685.077-.685 1.13.08 1.725 1.16 1.725 1.16 1.005 1.723 2.637 1.225 3.279.937.102-.728.393-1.225.715-1.507-2.498-.284-5.124-1.249-5.124-5.56 0-1.228.439-2.232 1.16-3.019-.116-.284-.503-1.428.11-2.977 0 0 .945-.303 3.094 1.153A10.79 10.79 0 0 1 12 6.185c.956.004 1.919.129 2.818.38 2.148-1.456 3.09-1.153 3.09-1.153.615 1.549.228 2.693.112 2.977.723.787 1.158 1.791 1.158 3.019 0 4.322-2.63 5.273-5.136 5.552.404.348.766 1.033.766 2.083 0 1.504-.014 2.718-.014 3.088 0 .3.203.651.774.541A11.252 11.252 0 0 0 12 .75Z" />
+            </svg>
+          )}
+          <span>
+            {githubLoading
+              ? "Connecting with GitHub..."
+              : "Sign up with GitHub"}
+          </span>
         </button>
 
         <div className="relative flex items-center justify-center">
@@ -151,7 +161,9 @@ function SignUpForm() {
 
         <form onSubmit={handleSignUp} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-300">Your Full Name</label>
+            <label className="text-xs font-bold text-slate-300">
+              Your Full Name
+            </label>
             <div className="relative">
               <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
@@ -166,7 +178,9 @@ function SignUpForm() {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-300">Email Address</label>
+            <label className="text-xs font-bold text-slate-300">
+              Email Address
+            </label>
             <div className="relative">
               <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
@@ -197,7 +211,7 @@ function SignUpForm() {
 
           <button
             type="submit"
-            disabled={loading || googleLoading}
+            disabled={loading || githubLoading}
             className="w-full py-3 rounded-xl font-extrabold text-sm text-white bg-orange-600 hover:bg-orange-500 shadow-lg shadow-orange-600/30 transition-all flex items-center justify-center gap-2 active:scale-98 disabled:opacity-60 cursor-pointer"
           >
             <span>{loading ? "Creating Account..." : "Create Account"}</span>
@@ -207,7 +221,10 @@ function SignUpForm() {
 
         <div className="text-center text-xs text-slate-400">
           Already have an account?{" "}
-          <Link href={`/auth/login?next=${encodeURIComponent(next)}`} className="text-orange-400 font-bold hover:underline">
+          <Link
+            href={`/auth/login?next=${encodeURIComponent(next)}`}
+            className="text-orange-400 font-bold hover:underline"
+          >
             Sign In
           </Link>
         </div>
