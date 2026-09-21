@@ -6,10 +6,24 @@ export async function updateSession(request: NextRequest) {
     request,
   });
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const pathname = request.nextUrl.pathname;
+
+  // Fallback if environment variables are not configured in hosting environment (e.g. Vercel)
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.warn("Middleware: Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY.");
+    if (pathname.startsWith("/submit-event") || pathname.startsWith("/my-events") || pathname.startsWith("/admin")) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/auth/login";
+      url.searchParams.set("next", pathname);
+      return NextResponse.redirect(url);
+    }
+    return supabaseResponse;
+  }
+
+  try {
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
         getAll() {
           return request.cookies.getAll();
@@ -24,38 +38,44 @@ export async function updateSession(request: NextRequest) {
           );
         },
       },
-    }
-  );
+    });
 
-  // Refresh auth session
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    // Refresh auth session
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  const pathname = request.nextUrl.pathname;
-
-  // Protect /submit-event and /my-events
-  if (!user && (pathname.startsWith("/submit-event") || pathname.startsWith("/my-events") || pathname.startsWith("/admin"))) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/auth/login";
-    url.searchParams.set("next", pathname);
-    return NextResponse.redirect(url);
-  }
-
-  // Protect /admin routes by checking user profile role
-  if (user && pathname.startsWith("/admin")) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
-    if (!profile || profile.role !== "admin") {
+    // Protect /submit-event and /my-events
+    if (
+      !user &&
+      (pathname.startsWith("/submit-event") ||
+        pathname.startsWith("/my-events") ||
+        pathname.startsWith("/admin"))
+    ) {
       const url = request.nextUrl.clone();
-      url.pathname = "/";
+      url.pathname = "/auth/login";
+      url.searchParams.set("next", pathname);
       return NextResponse.redirect(url);
     }
+
+    // Protect /admin routes by checking user profile role
+    if (user && pathname.startsWith("/admin")) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      if (!profile || profile.role !== "admin") {
+        const url = request.nextUrl.clone();
+        url.pathname = "/";
+        return NextResponse.redirect(url);
+      }
+    }
+  } catch (error) {
+    console.error("Middleware session update error:", error);
   }
 
   return supabaseResponse;
 }
+
