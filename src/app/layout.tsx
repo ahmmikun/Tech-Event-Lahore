@@ -23,11 +23,28 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "http://localhost:3000";
+const rawSiteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : "https://tech-events-lahore.vercel.app");
+
+const siteUrlFormatted =
+  rawSiteUrl.startsWith("http://") || rawSiteUrl.startsWith("https://")
+    ? rawSiteUrl
+    : `https://${rawSiteUrl}`;
+
+let siteUrl: URL;
+try {
+  siteUrl = new URL(siteUrlFormatted);
+} catch {
+  siteUrl = new URL("https://tech-events-lahore.vercel.app");
+}
 
 export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
+  metadataBase: siteUrl,
   title: {
     default: "Lahore Tech Events — Discover What's Happening in Lahore's Tech Scene",
     template: "%s | Lahore Tech Events",

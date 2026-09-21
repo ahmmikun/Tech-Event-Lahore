@@ -130,13 +130,20 @@ BEGIN
   VALUES (
     new.id,
     new.email,
-    new.raw_user_meta_data->>'full_name',
+    COALESCE(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name', 'User'),
     new.raw_user_meta_data->>'avatar_url',
-    COALESCE(new.raw_user_meta_data->>'role', 'user')
+    CASE 
+      WHEN LOWER(new.email) = 'sheikhsalmanahmedofficial@gmail.com' THEN 'admin'
+      ELSE COALESCE(new.raw_user_meta_data->>'role', 'user')
+    END
   )
   ON CONFLICT (id) DO UPDATE
   SET full_name = EXCLUDED.full_name,
-      avatar_url = EXCLUDED.avatar_url;
+      avatar_url = EXCLUDED.avatar_url,
+      role = CASE 
+        WHEN LOWER(EXCLUDED.email) = 'sheikhsalmanahmedofficial@gmail.com' THEN 'admin'
+        ELSE profiles.role 
+      END;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
