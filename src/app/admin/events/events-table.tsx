@@ -12,7 +12,6 @@ import {
   Sparkles, 
   Trash2, 
   ExternalLink, 
-  Eye, 
   Search, 
   CheckCircle2, 
   Clock, 
@@ -88,173 +87,159 @@ export function EventsTable({ initialEvents }: EventsTableProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-[#111111]">
       {/* Controls Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-4 rounded-2xl bg-[#0e1424] border border-slate-800">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-4 rounded-xl bg-white border border-[#E5E7EB] shadow-sm">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[#9CA3AF] absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Filter events by title, venue, or locality..."
-            className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white placeholder-slate-400 text-xs focus:border-orange-500 focus:outline-none"
+            className="w-full pl-10 pr-4 py-2 rounded-lg bg-[#FAFAF8] border border-[#E5E7EB] text-xs text-[#111111] placeholder-[#9CA3AF] focus:border-[#2563EB] focus:outline-none"
           />
         </div>
 
-        <div className="flex items-center gap-1.5 overflow-x-auto">
-          {["all", "approved", "pending", "rejected"].map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => setStatusFilter(s)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-colors whitespace-nowrap ${
-                statusFilter === s
-                  ? "bg-orange-600 text-white"
-                  : "bg-slate-900 text-slate-400 hover:text-white border border-slate-800"
-              }`}
-            >
-              {s}
-            </button>
-          ))}
+        <div className="flex items-center gap-2">
+          <Filter className="w-4 h-4 text-[#9CA3AF]" />
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-3 py-2 rounded-lg bg-[#FAFAF8] border border-[#E5E7EB] text-xs font-medium text-[#111111] focus:border-[#2563EB] focus:outline-none"
+          >
+            <option value="all">All Statuses</option>
+            <option value="approved">Approved Only</option>
+            <option value="pending">Pending Only</option>
+            <option value="rejected">Rejected Only</option>
+          </select>
         </div>
       </div>
 
-      {/* Events Table Container */}
-      <div className="rounded-3xl bg-[#0e1424] border border-slate-800 overflow-hidden shadow-2xl">
+      {/* Table */}
+      <div className="rounded-xl bg-white border border-[#E5E7EB] overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-800 bg-slate-900/60 text-[11px] font-black uppercase tracking-wider text-slate-400">
-                <th className="p-4">Event</th>
-                <th className="p-4">Date & Locality</th>
+          <table className="w-full text-left text-xs">
+            <thead className="bg-[#F9FAFB] border-b border-[#E5E7EB] text-[#6B7280] font-mono uppercase text-[10px]">
+              <tr>
+                <th className="p-4">Event Details</th>
+                <th className="p-4">Date & Venue</th>
                 <th className="p-4">Price</th>
                 <th className="p-4">Status</th>
                 <th className="p-4">Featured</th>
                 <th className="p-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/80 text-xs">
-              {filteredEvents.map((event) => (
-                <tr key={event.id} className="hover:bg-slate-900/40 transition-colors">
-                  {/* Event Info */}
+            <tbody className="divide-y divide-[#F3F4F6]">
+              {filteredEvents.map((evt) => (
+                <tr key={evt.id} className="hover:bg-[#FAFAF8] transition-colors">
                   <td className="p-4">
                     <div className="flex items-center gap-3">
-                      <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-slate-900 shrink-0 border border-slate-700">
-                        <Image
-                          src={
-                            event.image_url ||
-                            "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=200&q=80"
-                          }
-                          alt={event.title}
-                          fill
-                          className="object-cover"
-                        />
+                      <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-[#F3F4F6] shrink-0 border border-[#E5E7EB]">
+                        {evt.image_url ? (
+                          <Image
+                            src={evt.image_url}
+                            alt={evt.title}
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center font-mono text-[9px] text-[#9CA3AF]">
+                            N/A
+                          </div>
+                        )}
                       </div>
-                      <div className="space-y-0.5">
-                        <div className="font-bold text-white max-w-xs truncate">
-                          {event.title}
-                        </div>
-                        <div className="text-[11px] text-orange-400 font-semibold">
-                          {event.category}
-                        </div>
+                      <div className="space-y-0.5 max-w-xs">
+                        <span className="font-bold text-xs text-[#111111] line-clamp-1">
+                          {evt.title}
+                        </span>
+                        <span className="text-[11px] text-[#6B7280] block font-mono">
+                          {evt.category}
+                        </span>
                       </div>
                     </div>
                   </td>
 
-                  {/* Date & Area */}
-                  <td className="p-4 space-y-0.5">
-                    <div className="font-semibold text-slate-200">
-                      {formatEventDate(event.date_start)}
-                    </div>
-                    <div className="text-[11px] text-slate-400">
-                      {event.city_area} ({event.venue_name})
+                  <td className="p-4 text-[#4B5563]">
+                    <div className="space-y-0.5">
+                      <div className="font-medium text-[#111111]">
+                        {formatEventDate(evt.date_start)}
+                      </div>
+                      <div className="text-[11px] text-[#6B7280]">
+                        {evt.venue_name} ({evt.city_area})
+                      </div>
                     </div>
                   </td>
 
-                  {/* Price */}
-                  <td className="p-4 font-mono font-bold text-emerald-400">
-                    {formatPrice(event.price_type, event.price_amount)}
+                  <td className="p-4 font-mono font-medium text-[#111111]">
+                    {formatPrice(evt.price_type, evt.price_amount)}
                   </td>
 
-                  {/* Status */}
                   <td className="p-4">
-                    {event.status === "approved" && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-950 text-emerald-300 border border-emerald-500/30">
-                        <CheckCircle2 className="w-3 h-3" /> Approved
-                      </span>
-                    )}
-                    {event.status === "pending" && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-950 text-amber-300 border border-amber-500/30">
-                        <Clock className="w-3 h-3" /> Pending
-                      </span>
-                    )}
-                    {event.status === "rejected" && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-red-950 text-red-300 border border-red-500/30">
-                        <XCircle className="w-3 h-3" /> Declined
-                      </span>
-                    )}
+                    <span
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                        evt.status === "approved"
+                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                          : evt.status === "pending"
+                          ? "bg-amber-50 text-amber-700 border border-amber-200"
+                          : "bg-rose-50 text-rose-700 border border-rose-200"
+                      }`}
+                    >
+                      {evt.status === "approved" && <CheckCircle2 className="w-3 h-3" />}
+                      {evt.status === "pending" && <Clock className="w-3 h-3" />}
+                      {evt.status === "rejected" && <XCircle className="w-3 h-3" />}
+                      {evt.status}
+                    </span>
                   </td>
 
-                  {/* Featured Toggle */}
                   <td className="p-4">
                     <button
                       type="button"
-                      onClick={() => handleToggleFeatured(event)}
-                      className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border transition-colors flex items-center gap-1 ${
-                        event.featured
-                          ? "bg-amber-500/20 text-amber-400 border-amber-500/40"
-                          : "bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-600"
+                      onClick={() => handleToggleFeatured(evt)}
+                      className={`px-2 py-1 rounded text-[11px] font-bold flex items-center gap-1 border transition-colors ${
+                        evt.featured
+                          ? "bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100"
+                          : "bg-[#FAFAF8] text-[#6B7280] border-[#E5E7EB] hover:border-[#D1D5DB]"
                       }`}
                     >
-                      <Sparkles className="w-3 h-3" />
-                      {event.featured ? "Featured" : "Regular"}
+                      <Sparkles className={`w-3 h-3 ${evt.featured ? "text-amber-600" : "text-[#9CA3AF]"}`} />
+                      <span>{evt.featured ? "Featured" : "Standard"}</span>
                     </button>
                   </td>
 
-                  {/* Actions */}
                   <td className="p-4 text-right">
-                    <div className="inline-flex items-center gap-2">
+                    <div className="flex items-center justify-end gap-2">
                       <Link
-                        href={`/events/${event.slug}`}
-                        target="_blank"
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-white bg-slate-900 border border-slate-700"
-                        title="View Public Page"
+                        href={`/events/${evt.slug}`}
+                        className="p-1.5 rounded-lg text-[#6B7280] hover:text-[#111111] hover:bg-[#F3F4F6]"
+                        title="View Public Event"
                       >
-                        <Eye className="w-3.5 h-3.5" />
+                        <ExternalLink className="w-4 h-4" />
                       </Link>
-
-                      <a
-                        href={event.registration_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-1.5 rounded-lg text-sky-400 hover:text-sky-300 bg-sky-950/40 border border-sky-500/30"
-                        title="Test Registration Link"
-                      >
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </a>
 
                       <button
                         type="button"
-                        onClick={() => handleDelete(event)}
-                        disabled={deletingId === event.id}
-                        className="p-1.5 rounded-lg text-red-400 hover:text-red-300 bg-red-950/40 border border-red-500/30"
+                        onClick={() => handleDelete(evt)}
+                        disabled={deletingId === evt.id}
+                        className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 disabled:opacity-50"
                         title="Delete Event"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </td>
                 </tr>
               ))}
+
+              {filteredEvents.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="p-8 text-center text-[#6B7280]">
+                    No events match your criteria.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
-
-          {filteredEvents.length === 0 && (
-            <div className="p-8 text-center text-xs text-slate-400">
-              No events found matching current criteria.
-            </div>
-          )}
         </div>
       </div>
     </div>

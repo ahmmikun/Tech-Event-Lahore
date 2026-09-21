@@ -18,7 +18,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const viewport: Viewport = {
-  themeColor: "#ea580c",
+  themeColor: "#FAFAF8",
   width: "device-width",
   initialScale: 1,
 };
@@ -29,34 +29,34 @@ const SITE_URL =
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Event Finder Lahore — Discover, Attend & Post Events Across Lahore",
-    template: "%s | Event Finder Lahore",
+    default: "Lahore Tech Events — Discover What's Happening in Lahore's Tech Scene",
+    template: "%s | Lahore Tech Events",
   },
   description:
-    "Explore Lahore's vibrant events: Tech conferences, live music & Sufi nights, food festivals, art walks, and comedy gigs in Gulberg, DHA, Johar Town & more.",
+    "The central discovery platform for Lahore's tech community. Find hackathons, developer meetups, AI workshops, startup demos, and tech conferences across Gulberg, DHA, Arfa Software Park, and beyond.",
   keywords: [
-    "Lahore Events",
-    "Event Finder Lahore",
-    "Concerts in Lahore",
-    "Tech Conferences Lahore",
-    "Food Festival Lahore",
-    "Gulberg Events",
-    "DHA Lahore Events",
-    "Pakistan Events",
+    "Lahore Tech Events",
+    "Lahore Developer Community",
+    "Lahore Hackathons",
+    "Pakistan Tech Conferences",
+    "AI Workshops Lahore",
+    "Gulberg Tech Events",
+    "Arfa Karim Tower Meetups",
+    "LUMS Tech Events",
   ],
   openGraph: {
-    title: "Event Finder Lahore — Discover, Attend & Post Events Across Lahore",
+    title: "Lahore Tech Events — Discover What's Happening in Lahore's Tech Scene",
     description:
-      "Find upcoming tech, music, food, and cultural gatherings in the Heart of Pakistan with direct registration links.",
-    siteName: "Event Finder Lahore",
+      "Find upcoming hackathons, tech conferences, dev meetups, and founder mixers across Lahore with direct registration links.",
+    siteName: "Lahore Tech Events",
     locale: "en_PK",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Event Finder Lahore — Discover & Post Events Across Lahore",
+    title: "Lahore Tech Events — Discover What's Happening in Lahore's Tech Scene",
     description:
-      "Explore upcoming tech conferences, Sufi nights, food fests, and cultural galas across Lahore.",
+      "Discover verified tech events, workshops, hackathons, and conferences across Lahore.",
   },
 };
 
@@ -66,19 +66,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${outfit.variable} ${plusJakartaSans.variable} dark`}>
-      <body className="min-h-screen bg-[#070a12] text-slate-100 font-sans flex flex-col selection:bg-orange-500 selection:text-white antialiased">
+    <html lang="en" className={`${outfit.variable} ${plusJakartaSans.variable}`}>
+      <body className="min-h-screen bg-[#FAFAF8] text-[#111111] font-sans flex flex-col selection:bg-blue-600 selection:text-white antialiased">
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer />
         <Toaster
           position="top-right"
-          theme="dark"
+          theme="light"
           toastOptions={{
             style: {
-              background: "#0e1424",
-              border: "1px solid rgba(234, 88, 12, 0.3)",
-              color: "#f8fafc",
+              background: "#FFFFFF",
+              border: "1px solid #E5E7EB",
+              color: "#111111",
+              boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.08)",
             },
           }}
         />

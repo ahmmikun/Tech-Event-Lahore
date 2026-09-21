@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Search, X } from "lucide-react";
+import { Search, X, ArrowRight } from "lucide-react";
 
 interface EventSearchProps {
   placeholder?: string;
@@ -10,7 +10,7 @@ interface EventSearchProps {
 }
 
 export function EventSearch({
-  placeholder = "Search events by title, venue, or keywords...",
+  placeholder = "Search events, communities, venues...",
   className = "",
 }: EventSearchProps) {
   const router = useRouter();
@@ -43,20 +43,20 @@ export function EventSearch({
   return (
     <form onSubmit={handleSearch} className={`relative flex items-center ${className}`}>
       <div className="relative w-full">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9CA3AF]" />
         <input
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder={placeholder}
-          className="w-full pl-12 pr-28 py-4 rounded-2xl bg-slate-900/90 border-2 border-slate-700/80 focus:border-orange-500 focus:outline-none text-white placeholder-slate-400 text-sm md:text-base font-medium transition-all shadow-xl shadow-black/40"
+          className="w-full pl-11 pr-28 py-3.5 rounded-xl bg-white border border-[#E5E7EB] focus:border-[#2563EB] focus:ring-2 focus:ring-blue-100 focus:outline-none text-[#111111] placeholder-[#9CA3AF] text-sm font-medium transition-all shadow-sm"
         />
 
         {searchTerm && (
           <button
             type="button"
             onClick={handleClear}
-            className="absolute right-24 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-white"
+            className="absolute right-24 top-1/2 -translate-y-1/2 p-1 text-[#9CA3AF] hover:text-[#111111]"
           >
             <X className="w-4 h-4" />
           </button>
@@ -65,9 +65,10 @@ export function EventSearch({
         <button
           type="submit"
           disabled={isPending}
-          className="absolute right-2 top-1/2 -translate-y-1/2 px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-extrabold text-sm shadow-md shadow-orange-600/30 transition-all active:scale-95 disabled:opacity-70"
+          className="absolute right-1.5 top-1/2 -translate-y-1/2 px-4 py-2 rounded-lg bg-[#111111] hover:bg-[#2563EB] text-white font-bold text-xs shadow-sm transition-all active:scale-98 disabled:opacity-70 flex items-center gap-1.5"
         >
-          {isPending ? "..." : "Search"}
+          <span>{isPending ? "..." : "Search"}</span>
+          <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
     </form>

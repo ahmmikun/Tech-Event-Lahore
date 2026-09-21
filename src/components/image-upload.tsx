@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
-import { UploadCloud, Image as ImageIcon, X, Loader2, Sparkles } from "lucide-react";
+import { UploadCloud, X, Loader2, Sparkles } from "lucide-react";
 
 interface ImageUploadProps {
   value: string;
@@ -14,24 +14,24 @@ interface ImageUploadProps {
 
 const PRESET_IMAGES = [
   {
-    name: "Tech Summit",
+    name: "AI & Hackathon",
+    url: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    name: "Developer Meetup",
     url: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80",
   },
   {
-    name: "Music / Concert",
-    url: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80",
-  },
-  {
-    name: "Food Festival",
-    url: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=1200&q=80",
-  },
-  {
-    name: "Art & Culture",
-    url: "https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=1200&q=80",
-  },
-  {
     name: "Startup Pitch",
-    url: "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=1200&q=80",
+    url: "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    name: "Cloud & Tech",
+    url: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    name: "Product & Design",
+    url: "https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?auto=format&fit=crop&w=1200&q=80",
   },
 ];
 
@@ -60,7 +60,7 @@ export function ImageUpload({ value, onChange, className = "" }: ImageUploadProp
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
       const filePath = `posters/${fileName}`;
 
-      const { data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from("event-images")
         .upload(filePath, file, {
           cacheControl: "3600",
@@ -89,7 +89,7 @@ export function ImageUpload({ value, onChange, className = "" }: ImageUploadProp
     <div className={`space-y-4 ${className}`}>
       {/* Upload Box or Image Preview */}
       {value ? (
-        <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden border-2 border-orange-500/50 group bg-slate-900 shadow-xl">
+        <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden border border-[#E5E7EB] group bg-[#F3F4F6] shadow-sm">
           <Image
             src={value}
             alt="Event Poster Preview"
@@ -100,14 +100,14 @@ export function ImageUpload({ value, onChange, className = "" }: ImageUploadProp
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-slate-900/90 border border-slate-700 hover:border-orange-500"
+              className="px-4 py-2 rounded-lg text-xs font-bold text-[#111111] bg-white border border-[#E5E7EB] hover:bg-[#F3F4F6]"
             >
               Change Poster
             </button>
             <button
               type="button"
               onClick={() => onChange("")}
-              className="p-2 rounded-xl text-white bg-red-600/90 hover:bg-red-600"
+              className="p-2 rounded-lg text-white bg-red-600 hover:bg-red-700"
             >
               <X className="w-4 h-4" />
             </button>
@@ -116,22 +116,22 @@ export function ImageUpload({ value, onChange, className = "" }: ImageUploadProp
       ) : (
         <div
           onClick={() => fileInputRef.current?.click()}
-          className="aspect-[16/9] w-full rounded-2xl border-2 border-dashed border-slate-700 hover:border-orange-500 bg-slate-900/60 hover:bg-slate-900/90 transition-all flex flex-col items-center justify-center p-6 text-center cursor-pointer group shadow-inner"
+          className="aspect-[16/9] w-full rounded-xl border-2 border-dashed border-[#D1D5DB] hover:border-[#2563EB] bg-white hover:bg-blue-50/20 transition-all flex flex-col items-center justify-center p-6 text-center cursor-pointer group shadow-sm"
         >
           {uploading ? (
-            <div className="flex flex-col items-center gap-2 text-orange-400">
+            <div className="flex flex-col items-center gap-2 text-[#2563EB]">
               <Loader2 className="w-8 h-8 animate-spin" />
               <span className="text-xs font-bold">Uploading poster to Supabase Storage...</span>
             </div>
           ) : (
             <>
-              <div className="w-12 h-12 rounded-2xl bg-orange-600/20 text-orange-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                <UploadCloud className="w-6 h-6" />
+              <div className="w-10 h-10 rounded-lg bg-blue-50 text-[#2563EB] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                <UploadCloud className="w-5 h-5" />
               </div>
-              <p className="text-sm font-bold text-white mb-1">
+              <p className="text-sm font-bold text-[#111111] mb-1">
                 Upload Event Poster / Cover Image
               </p>
-              <p className="text-xs text-slate-400 max-w-xs">
+              <p className="text-xs text-[#6B7280] max-w-xs">
                 Drag and drop or browse files. 16:9 ratio recommended (JPG, PNG, WebP up to 5MB)
               </p>
             </>
@@ -150,9 +150,9 @@ export function ImageUpload({ value, onChange, className = "" }: ImageUploadProp
 
       {/* Preset images picker */}
       <div className="space-y-2">
-        <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-          <Sparkles className="w-3 h-3 text-orange-400" />
-          Or choose from high-res presets:
+        <div className="text-[11px] font-bold text-[#6B7280] uppercase tracking-wider flex items-center gap-1">
+          <Sparkles className="w-3 h-3 text-[#2563EB]" />
+          Or choose from tech presets:
         </div>
         <div className="flex flex-wrap gap-2">
           {PRESET_IMAGES.map((preset) => (
@@ -162,8 +162,8 @@ export function ImageUpload({ value, onChange, className = "" }: ImageUploadProp
               onClick={() => onChange(preset.url)}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${
                 value === preset.url
-                  ? "bg-orange-600 text-white border-orange-500 font-bold"
-                  : "bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-600"
+                  ? "bg-[#111111] text-white border-[#111111]"
+                  : "bg-white text-[#4B5563] border-[#E5E7EB] hover:border-[#D1D5DB]"
               }`}
             >
               {preset.name}

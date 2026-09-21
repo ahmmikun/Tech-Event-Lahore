@@ -15,7 +15,6 @@ import {
   MapPin, 
   Calendar, 
   Clock, 
-  Tag, 
   User, 
   AlertTriangle,
   Loader2
@@ -96,10 +95,10 @@ export function ModerationCard({ event, onActionComplete }: ModerationCardProps)
   };
 
   return (
-    <div className="p-6 rounded-3xl bg-[#0e1424] border-2 border-amber-500/30 space-y-6 shadow-xl relative">
+    <div className="p-6 rounded-2xl bg-white border border-[#E5E7EB] space-y-6 shadow-sm relative text-[#111111]">
       <div className="flex flex-col lg:flex-row items-start gap-6">
         {/* Poster Media */}
-        <div className="relative w-full lg:w-72 aspect-[16/10] rounded-2xl overflow-hidden bg-slate-900 shrink-0 border border-slate-700/80">
+        <div className="relative w-full lg:w-72 aspect-[16/10] rounded-xl overflow-hidden bg-[#F3F4F6] shrink-0 border border-[#E5E7EB]">
           <Image
             src={
               event.image_url ||
@@ -109,7 +108,7 @@ export function ModerationCard({ event, onActionComplete }: ModerationCardProps)
             fill
             className="object-cover"
           />
-          <div className="absolute top-2 left-2 px-2.5 py-1 rounded-md bg-amber-500 text-slate-950 font-black text-[10px] uppercase tracking-wider">
+          <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-amber-100 text-amber-900 font-mono font-bold text-[10px] uppercase tracking-wider">
             Pending Review
           </div>
         </div>
@@ -117,46 +116,46 @@ export function ModerationCard({ event, onActionComplete }: ModerationCardProps)
         {/* Info Column */}
         <div className="flex-1 space-y-3 w-full">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-orange-600/20 text-orange-400 border border-orange-500/30">
+            <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-[#111111] text-white font-mono">
               {event.category}
             </span>
-            <span className="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-slate-800 text-slate-300">
+            <span className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#F3F4F6] text-[#4B5563]">
               {event.city_area}, Lahore
             </span>
-            <span className="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-slate-800 text-emerald-400 font-mono">
+            <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-700 font-mono">
               {formatPrice(event.price_type, event.price_amount)}
             </span>
           </div>
 
-          <h3 className="text-xl sm:text-2xl font-black text-white leading-snug">
+          <h3 className="text-lg sm:text-xl font-extrabold text-[#111111] leading-snug">
             {event.title}
           </h3>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-300 pt-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-[#6B7280] pt-1">
             <div className="flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5 text-orange-400" />
-              <span>{formatEventDate(event.date_start)}</span>
+              <Calendar className="w-3.5 h-3.5 text-[#2563EB]" />
+              <span className="text-[#111111] font-medium">{formatEventDate(event.date_start)}</span>
             </div>
             {event.time_display && (
               <div className="flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-orange-400" />
+                <Clock className="w-3.5 h-3.5 text-[#9CA3AF]" />
                 <span>{event.time_display}</span>
               </div>
             )}
             <div className="flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5 text-orange-400" />
+              <MapPin className="w-3.5 h-3.5 text-[#9CA3AF]" />
               <span className="truncate">{event.venue_name} ({event.venue_address})</span>
             </div>
             {event.organizer && (
               <div className="flex items-center gap-1.5">
-                <User className="w-3.5 h-3.5 text-orange-400" />
+                <User className="w-3.5 h-3.5 text-[#9CA3AF]" />
                 <span className="truncate">Organizer: {event.organizer.email}</span>
               </div>
             )}
           </div>
 
           {/* Description preview */}
-          <p className="text-xs text-slate-400 line-clamp-3 leading-relaxed pt-1">
+          <p className="text-xs text-[#4B5563] line-clamp-3 leading-relaxed pt-1">
             {event.description}
           </p>
 
@@ -166,7 +165,7 @@ export function ModerationCard({ event, onActionComplete }: ModerationCardProps)
               href={event.registration_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold text-sky-400 bg-sky-950/40 border border-sky-500/30 hover:bg-sky-900/40 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold text-[#2563EB] bg-blue-50 border border-blue-200 hover:bg-blue-100 transition-colors"
             >
               <span>Test Registration Link: {event.registration_url}</span>
               <ExternalLink className="w-3.5 h-3.5" />
@@ -176,15 +175,15 @@ export function ModerationCard({ event, onActionComplete }: ModerationCardProps)
       </div>
 
       {/* Moderation Controls Bar */}
-      <div className="pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-end gap-3">
+      <div className="pt-4 border-t border-[#F3F4F6] flex flex-wrap items-center justify-end gap-3">
         {/* Decline Button */}
         <button
           type="button"
           onClick={() => setShowDeclineModal(true)}
           disabled={approving || declining}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-red-300 bg-red-950/50 hover:bg-red-900/60 border border-red-500/40 transition-all active:scale-95 disabled:opacity-60"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-xs text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-all active:scale-98 disabled:opacity-60"
         >
-          <XCircle className="w-4 h-4 text-red-400" />
+          <XCircle className="w-4 h-4 text-rose-600" />
           <span>Decline with Message...</span>
         </button>
 
@@ -193,12 +192,12 @@ export function ModerationCard({ event, onActionComplete }: ModerationCardProps)
           type="button"
           onClick={handleApprove}
           disabled={approving || declining}
-          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs sm:text-sm text-white bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 shadow-lg shadow-emerald-600/30 transition-all active:scale-95 disabled:opacity-60"
+          className="inline-flex items-center gap-2 px-5 py-2 rounded-lg font-bold text-xs text-white bg-[#111111] hover:bg-emerald-600 shadow-sm transition-all active:scale-98 disabled:opacity-60"
         >
           {approving ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
           ) : (
-            <CheckCircle2 className="w-4 h-4" />
+            <CheckCircle2 className="w-3.5 h-3.5" />
           )}
           <span>{approving ? "Approving..." : "Approve & Publish"}</span>
         </button>
@@ -206,17 +205,17 @@ export function ModerationCard({ event, onActionComplete }: ModerationCardProps)
 
       {/* Decline with Reason Modal */}
       {showDeclineModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-lg rounded-3xl bg-[#0e1424] border-2 border-red-500/50 shadow-2xl p-6 sm:p-8 space-y-6 animate-in zoom-in-95">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white border border-[#E5E7EB] shadow-2xl p-6 sm:p-8 space-y-6 animate-in zoom-in-95 text-[#111111]">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-red-600/20 text-red-400 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-200">
                 <AlertTriangle className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-lg font-black text-white">
+                <h3 className="text-base font-bold text-[#111111]">
                   Decline Event Submission
                 </h3>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-[#6B7280]">
                   Provide a clear message explaining why this event was declined. The organizer will see this feedback in their dashboard.
                 </p>
               </div>
@@ -224,22 +223,22 @@ export function ModerationCard({ event, onActionComplete }: ModerationCardProps)
 
             <form onSubmit={handleDeclineSubmit} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-300">
-                  Rejection Message / Feedback <span className="text-red-500">*</span>
+                <label className="text-xs font-mono font-bold uppercase tracking-wider text-[#374151]">
+                  Rejection Message / Feedback <span className="text-rose-500">*</span>
                 </label>
                 <textarea
                   required
                   rows={4}
                   value={rejectionReason}
                   onChange={(e) => setRejectionReason(e.target.value)}
-                  placeholder="e.g. The registration URL is broken or inactive. Please provide an active Ticketwala/Google Form link, and upload a higher-resolution poster."
-                  className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-400 text-sm focus:border-red-500 focus:outline-none leading-relaxed"
+                  placeholder="e.g. The registration URL is broken or inactive. Please provide an active Luma/Google Form link, and upload a higher-resolution poster."
+                  className="w-full px-4 py-3 rounded-lg bg-[#FAFAF8] border border-[#E5E7EB] text-[#111111] placeholder-[#9CA3AF] text-xs focus:border-rose-500 focus:outline-none leading-relaxed"
                 />
               </div>
 
               {/* Quick Preset Reasons */}
               <div className="space-y-1">
-                <div className="text-[11px] font-bold text-slate-400">Quick reasons:</div>
+                <div className="text-[11px] font-bold text-[#6B7280]">Quick reasons:</div>
                 <div className="flex flex-wrap gap-1.5">
                   {[
                     "Invalid registration link",
@@ -251,7 +250,7 @@ export function ModerationCard({ event, onActionComplete }: ModerationCardProps)
                       key={preset}
                       type="button"
                       onClick={() => setRejectionReason(preset)}
-                      className="px-2.5 py-1 rounded-md text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300"
+                      className="px-2.5 py-1 rounded-md text-[11px] bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#4B5563]"
                     >
                       {preset}
                     </button>
@@ -263,14 +262,14 @@ export function ModerationCard({ event, onActionComplete }: ModerationCardProps)
                 <button
                   type="button"
                   onClick={() => setShowDeclineModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-800"
+                  className="px-4 py-2 rounded-lg text-xs font-bold text-[#4B5563] hover:text-[#111111] bg-[#F3F4F6]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={declining}
-                  className="px-5 py-2 rounded-xl text-xs font-black text-white bg-red-600 hover:bg-red-500 shadow-md shadow-red-600/30 flex items-center gap-1.5 disabled:opacity-60"
+                  className="px-4 py-2 rounded-lg text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 shadow-sm flex items-center gap-1.5 disabled:opacity-60"
                 >
                   {declining && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   <span>{declining ? "Submitting..." : "Confirm Decline"}</span>

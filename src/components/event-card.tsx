@@ -1,7 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { 
-  Calendar, 
   MapPin, 
   ExternalLink, 
   Tag, 
@@ -22,49 +21,48 @@ export function EventCard({ event, priority = false }: EventCardProps) {
   const imageUrl = event.image_url || fallbackImage;
 
   return (
-    <div className="bold-card rounded-2xl overflow-hidden flex flex-col group h-full relative">
+    <div className="rounded-xl overflow-hidden flex flex-col group h-full relative border border-[#E5E7EB] bg-white shadow-sm hover:border-[#D1D5DB] hover:shadow-md transition-all duration-200 hover:-translate-y-0.5">
       {/* Top Image Banner */}
-      <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-900">
+      <div className="relative aspect-[16/10] w-full overflow-hidden bg-[#F3F4F6]">
         <Image
           src={imageUrl}
           alt={event.title}
           fill
           priority={priority}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          className="object-cover transition-transform duration-500 group-hover:scale-103"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0e1424] via-transparent to-black/40" />
 
         {/* Floating Date Badge */}
-        <div className="absolute top-3 left-3 bg-[#070a12]/90 backdrop-blur-md border border-orange-500/40 rounded-xl px-3 py-1.5 flex flex-col items-center shadow-lg">
-          <span className="text-[10px] font-extrabold text-orange-400 tracking-wider">
+        <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-md border border-[#E5E7EB] rounded-lg px-2.5 py-1 flex flex-col items-center shadow-sm">
+          <span className="text-[9px] font-bold text-[#2563EB] tracking-wider font-mono uppercase">
             {dateInfo.month}
           </span>
-          <span className="text-lg font-black text-white leading-none">
+          <span className="text-base font-black text-[#111111] leading-none">
             {dateInfo.day}
           </span>
         </div>
 
         {/* Featured Ribbon */}
         {event.featured && (
-          <div className="absolute top-3 right-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[11px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
-            <Sparkles className="w-3 h-3" />
+          <div className="absolute top-3 right-3 bg-[#F4B942] text-[#111111] text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded shadow-sm flex items-center gap-1">
+            <Sparkles className="w-3 h-3 text-[#111111]" />
             Featured
           </div>
         )}
 
         {/* Category & Price Tags on Image Bottom */}
         <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-2">
-          <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-lg bg-slate-900/90 text-orange-300 border border-slate-700/60 backdrop-blur-sm">
-            <Tag className="w-3 h-3" />
+          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded bg-white/95 text-[#111111] border border-[#E5E7EB] shadow-sm">
+            <Tag className="w-3 h-3 text-[#2563EB]" />
             {event.category}
           </span>
 
           <span
-            className={`inline-flex items-center gap-1 text-xs font-black px-2.5 py-1 rounded-lg backdrop-blur-sm border ${
+            className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded shadow-sm ${
               event.price_type === "free"
-                ? "bg-emerald-950/80 text-emerald-300 border-emerald-500/30"
-                : "bg-indigo-950/80 text-indigo-300 border-indigo-500/30"
+                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                : "bg-blue-50 text-blue-700 border border-blue-200"
             }`}
           >
             <Ticket className="w-3 h-3" />
@@ -77,56 +75,53 @@ export function EventCard({ event, priority = false }: EventCardProps) {
       <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
         <div className="space-y-2">
           {/* Locality & Time */}
-          <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
-            <span className="flex items-center gap-1 text-slate-300 font-semibold">
-              <MapPin className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+          <div className="flex items-center justify-between text-xs text-[#6B7280]">
+            <span className="flex items-center gap-1 text-[#111111] font-semibold truncate">
+              <MapPin className="w-3 h-3 text-[#2563EB] shrink-0" />
               {event.city_area}
             </span>
             {event.time_display && (
-              <span className="flex items-center gap-1 text-slate-400">
-                <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                {event.time_display}
+              <span className="text-[11px] text-[#6B7280] shrink-0 font-mono">
+                {event.time_display.split("-")[0]}
               </span>
             )}
           </div>
 
           {/* Title */}
-          <Link href={`/events/${event.slug}`} className="block group-hover:text-orange-400 transition-colors">
-            <h3 className="font-extrabold text-lg sm:text-xl text-white leading-snug line-clamp-2">
+          <Link href={`/events/${event.slug}`} className="block group-hover:text-[#2563EB] transition-colors">
+            <h3 className="font-extrabold text-base sm:text-lg text-[#111111] leading-snug line-clamp-2">
               {event.title}
             </h3>
           </Link>
 
           {/* Venue & Short description */}
-          <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
+          <p className="text-xs text-[#4B5563] line-clamp-2 leading-relaxed">
             {event.short_description || event.description}
           </p>
 
-          <p className="text-xs text-slate-400 truncate flex items-center gap-1 pt-1 font-mono">
-            <span className="text-slate-400">Venue:</span>
-            <span className="text-slate-300">{event.venue_name}</span>
+          <p className="text-[11px] text-[#6B7280] truncate flex items-center gap-1 pt-1 font-mono">
+            <span>Venue:</span>
+            <span className="text-[#111111] font-sans font-medium">{event.venue_name}</span>
           </p>
         </div>
 
         {/* Action Buttons */}
-        <div className="pt-2 border-t border-slate-800/80 flex items-center gap-2">
-          {/* Details Link */}
+        <div className="pt-3 border-t border-[#F3F4F6] flex items-center gap-2">
           <Link
             href={`/events/${event.slug}`}
-            className="flex-1 py-2 px-3 rounded-xl text-xs font-bold text-slate-200 bg-slate-900 border border-slate-700/80 hover:border-slate-500 hover:text-white transition-colors text-center"
+            className="flex-1 py-2 px-3 rounded-lg text-xs font-bold text-[#374151] bg-[#F3F4F6] hover:bg-[#E5E7EB] hover:text-[#111111] transition-colors text-center"
           >
             Details
           </Link>
 
-          {/* Direct External Registration Link */}
           <a
             href={event.registration_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-extrabold text-white bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 shadow-md shadow-orange-600/25 transition-all text-center group/btn active:scale-95"
+            className="flex-1 inline-flex items-center justify-center gap-1 py-2 px-3 rounded-lg text-xs font-bold text-white bg-[#111111] hover:bg-[#2563EB] shadow-sm transition-all text-center group/btn active:scale-98"
           >
             <span>Register</span>
-            <ExternalLink className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
+            <ExternalLink className="w-3 h-3 group-hover/btn:translate-x-0.5 transition-transform" />
           </a>
         </div>
       </div>

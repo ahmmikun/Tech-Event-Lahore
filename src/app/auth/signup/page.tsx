@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import {
-  Sparkles,
+  Terminal,
   Mail,
   Lock,
   User,
@@ -103,42 +103,44 @@ function SignUpForm() {
     <div className="w-full max-w-md space-y-6">
       {/* Brand header */}
       <div className="text-center space-y-2">
-        <Link href="/" className="inline-flex items-center gap-2">
-          <div className="w-10 h-10 rounded-xl bg-orange-600 flex items-center justify-center text-white shadow-lg">
-            <Sparkles className="w-5 h-5" />
+        <Link href="/" className="inline-flex items-center gap-2 group">
+          <div className="w-9 h-9 rounded-lg bg-[#111111] text-white flex items-center justify-center shadow-sm group-hover:bg-[#2563EB] transition-colors">
+            <Terminal className="w-4 h-4 text-white" />
           </div>
-          <span className="text-xl font-extrabold text-white tracking-tight">
-            EVENT FINDER <span className="text-orange-500">LAHORE</span>
+          <span className="text-lg font-extrabold text-[#111111] tracking-tight">
+            LAHORE TECH <span className="text-[#2563EB]">PORTAL</span>
           </span>
         </Link>
-        <h2 className="text-2xl font-black text-white">Create an Account</h2>
-        <p className="text-xs text-slate-400">
-          Join the Lahore event creator community
+        <h2 className="text-2xl font-black text-[#111111] tracking-tight">
+          Create Organizer Account
+        </h2>
+        <p className="text-xs text-[#6B7280]">
+          Join Lahore&apos;s developer and tech organizer collective
         </p>
       </div>
 
       {/* Error Alert */}
       {errorMessage && (
-        <div className="p-3 rounded-xl bg-red-950/60 border border-red-500/40 text-red-200 text-xs flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+        <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
           <span>{errorMessage}</span>
         </div>
       )}
 
       {/* Card */}
-      <div className="p-8 rounded-3xl bg-[#0e1424] border border-slate-800 shadow-2xl space-y-6">
+      <div className="p-8 rounded-2xl bg-white border border-[#E5E7EB] shadow-md space-y-6">
         {/* GitHub Sign In Button */}
         <button
           type="button"
           onClick={handleGitHubLogin}
           disabled={githubLoading || loading}
-          className="w-full py-3.5 px-4 rounded-xl font-bold text-sm text-slate-100 bg-slate-900 border-2 border-slate-700 hover:border-slate-500 hover:bg-slate-800 transition-all flex items-center justify-center gap-3 shadow-md active:scale-98 disabled:opacity-60 cursor-pointer"
+          className="w-full py-3 px-4 rounded-lg font-bold text-xs sm:text-sm text-[#111111] bg-white border border-[#E5E7EB] hover:bg-[#F9FAFB] hover:border-[#D1D5DB] transition-all flex items-center justify-center gap-3 shadow-sm active:scale-98 disabled:opacity-60 cursor-pointer"
         >
           {githubLoading ? (
-            <Loader2 className="w-5 h-5 animate-spin" aria-hidden="true" />
+            <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
           ) : (
             <svg
-              className="w-5 h-5 fill-current"
+              className="w-4 h-4 fill-current"
               viewBox="0 0 24 24"
               aria-hidden="true"
             >
@@ -153,58 +155,62 @@ function SignUpForm() {
         </button>
 
         <div className="relative flex items-center justify-center">
-          <div className="border-t border-slate-800 w-full" />
-          <span className="bg-[#0e1424] px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider relative">
+          <div className="border-t border-[#E5E7EB] w-full" />
+          <span className="bg-white px-3 text-[11px] font-mono uppercase tracking-wider text-[#6B7280] relative">
             Or with email
           </span>
         </div>
 
+        {/* Form */}
         <form onSubmit={handleSignUp} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-300">
-              Your Full Name
+            <label className="text-xs font-mono font-bold uppercase tracking-wider text-[#374151]">
+              Full Name
             </label>
             <div className="relative">
-              <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <User className="w-4 h-4 text-[#9CA3AF] absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="Ali Khan"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700/80 text-white placeholder-slate-400 text-sm focus:border-orange-500 focus:outline-none"
+                placeholder="Usman Tariq"
+                className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-[#FAFAF8] border border-[#E5E7EB] text-[#111111] placeholder-[#9CA3AF] text-sm focus:border-[#2563EB] focus:outline-none"
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-300">
+            <label className="text-xs font-mono font-bold uppercase tracking-wider text-[#374151]">
               Email Address
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Mail className="w-4 h-4 text-[#9CA3AF] absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="organizer@lahore.pk"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700/80 text-white placeholder-slate-400 text-sm focus:border-orange-500 focus:outline-none"
+                className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-[#FAFAF8] border border-[#E5E7EB] text-[#111111] placeholder-[#9CA3AF] text-sm focus:border-[#2563EB] focus:outline-none"
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-300">Password</label>
+            <label className="text-xs font-mono font-bold uppercase tracking-wider text-[#374151]">
+              Password
+            </label>
             <div className="relative">
-              <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Lock className="w-4 h-4 text-[#9CA3AF] absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="password"
                 required
+                minLength={6}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="At least 6 characters"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700/80 text-white placeholder-slate-400 text-sm focus:border-orange-500 focus:outline-none"
+                placeholder="•••••••• (min. 6 characters)"
+                className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-[#FAFAF8] border border-[#E5E7EB] text-[#111111] placeholder-[#9CA3AF] text-sm focus:border-[#2563EB] focus:outline-none"
               />
             </div>
           </div>
@@ -212,20 +218,20 @@ function SignUpForm() {
           <button
             type="submit"
             disabled={loading || githubLoading}
-            className="w-full py-3 rounded-xl font-extrabold text-sm text-white bg-orange-600 hover:bg-orange-500 shadow-lg shadow-orange-600/30 transition-all flex items-center justify-center gap-2 active:scale-98 disabled:opacity-60 cursor-pointer"
+            className="w-full py-3 rounded-lg font-bold text-xs sm:text-sm text-white bg-[#111111] hover:bg-[#2563EB] shadow-sm transition-all flex items-center justify-center gap-2 active:scale-98 disabled:opacity-60 cursor-pointer"
           >
             <span>{loading ? "Creating Account..." : "Create Account"}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
 
-        <div className="text-center text-xs text-slate-400">
+        <div className="text-center text-xs text-[#6B7280]">
           Already have an account?{" "}
           <Link
             href={`/auth/login?next=${encodeURIComponent(next)}`}
-            className="text-orange-400 font-bold hover:underline"
+            className="text-[#2563EB] font-bold hover:underline"
           >
-            Sign In
+            Sign in
           </Link>
         </div>
       </div>
@@ -235,10 +241,10 @@ function SignUpForm() {
 
 export default function SignUpPage() {
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
+    <div className="min-h-[80vh] flex items-center justify-center px-4 py-12 bg-[#FAFAF8]">
       <Suspense
         fallback={
-          <div className="flex items-center justify-center p-12 text-orange-500">
+          <div className="flex items-center justify-center p-12 text-[#2563EB]">
             <Loader2 className="w-8 h-8 animate-spin" />
           </div>
         }

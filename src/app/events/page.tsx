@@ -5,14 +5,15 @@ import { EventSearch } from "@/components/event-search";
 import { AreaPills } from "@/components/area-pills";
 import { CategoryPills } from "@/components/category-pills";
 import type { EventItem } from "@/types/database";
+import { DEFAULT_LAHORE_TECH_EVENTS } from "@/lib/mock-events";
 import { 
   Filter, 
   MapPin, 
   Tag, 
   RotateCcw, 
-  Sparkles,
-  Ticket,
-  SlidersHorizontal
+  Terminal,
+  SlidersHorizontal,
+  PlusCircle
 } from "lucide-react";
 
 import { Suspense } from "react";
@@ -67,13 +68,38 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
     query = query.or(`title.ilike.%${q}%,description.ilike.%${q}%,venue_name.ilike.%${q}%,city_area.ilike.%${q}%`);
   }
 
-  // Order chronologically
   query = query.order("date_start", { ascending: true });
 
-  const { data: rawEvents } = await query;
-  let events = (rawEvents as EventItem[]) || [];
+  let events: EventItem[] = [];
+  try {
+    const { data: rawEvents } = await query;
+    if (rawEvents && rawEvents.length > 0) {
+      events = rawEvents as EventItem[];
+    }
+  } catch {
+    // Graceful fallback to local tech events
+  }
 
-  // Date filtering in memory for precise local timezone handling
+  // If Supabase table is unseeded, use mock events and apply identical filter logic
+  if (events.length === 0) {
+    events = DEFAULT_LAHORE_TECH_EVENTS.filter((e) => {
+      if (featuredOnly && !e.featured) return false;
+      if (priceFilter && priceFilter !== "all" && e.price_type !== priceFilter) return false;
+      if (category && category !== "All" && !e.category.toLowerCase().includes(category.toLowerCase())) return false;
+      if (area && area !== "All" && !e.city_area.toLowerCase().includes(area.toLowerCase())) return false;
+      if (q.trim()) {
+        const queryLower = q.toLowerCase();
+        const matchTitle = e.title.toLowerCase().includes(queryLower);
+        const matchDesc = e.description.toLowerCase().includes(queryLower);
+        const matchVenue = e.venue_name.toLowerCase().includes(queryLower);
+        const matchArea = e.city_area.toLowerCase().includes(queryLower);
+        if (!matchTitle && !matchDesc && !matchVenue && !matchArea) return false;
+      }
+      return true;
+    });
+  }
+
+  // Date horizon filtering
   const now = new Date();
   if (dateFilter === "today") {
     events = events.filter((e) => {
@@ -96,7 +122,6 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
       );
     });
   } else if (dateFilter === "weekend") {
-    // Next 7 days
     const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
     events = events.filter((e) => {
       const d = new Date(e.date_start);
@@ -115,41 +140,41 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
   );
 
   return (
-    <div className="min-h-screen py-10">
+    <div className="min-h-screen py-10 bg-[#FAFAF8] text-[#111111]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        {/* Header Title */}
+        {/* Editorial Header */}
         <div className="space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs font-black uppercase tracking-wider">
-            <Sparkles className="w-3.5 h-3.5 text-orange-500" />
-            Discover Directory
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-white border border-[#E5E7EB] text-[#111111] text-xs font-mono tracking-wider shadow-sm">
+            <Terminal className="w-3.5 h-3.5 text-[#2563EB]" />
+            LAHORE TECH DIRECTORY
           </div>
-          <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
+          <h1 className="text-3xl sm:text-5xl font-extrabold text-[#111111] tracking-tight">
             Events in Lahore
           </h1>
-          <p className="text-sm sm:text-base text-slate-400 max-w-2xl">
-            Browse verified upcoming gatherings, conferences, workshops, concerts, and festivals. Click register to book on the official source.
+          <p className="text-xs sm:text-sm text-[#4B5563] max-w-2xl leading-relaxed">
+            Discover verified tech summits, hackathons, open source workshops, and founder meetups across Lahore&apos;s tech hubs.
           </p>
         </div>
 
-        {/* Search Bar */}
+        {/* Search Input */}
         <div className="max-w-3xl">
-          <Suspense fallback={<div className="h-14 bg-slate-900/80 rounded-2xl animate-pulse" />}>
-            <EventSearch placeholder="Search by event name, venue, locality, or keyword..." />
+          <Suspense fallback={<div className="h-12 bg-white rounded-xl border border-[#E5E7EB] animate-pulse" />}>
+            <EventSearch placeholder="Search by tech stack, event name, venue, or locality..." />
           </Suspense>
         </div>
 
-        {/* Filter Controls Card */}
-        <div className="p-6 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-6">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-            <div className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-slate-200">
-              <SlidersHorizontal className="w-4 h-4 text-orange-500" />
-              Filter by Locality & Category
+        {/* Filter Controls Card - Light Neo-Brutalism */}
+        <div className="p-6 rounded-2xl bg-white border border-[#E5E7EB] space-y-5 shadow-sm">
+          <div className="flex items-center justify-between border-b border-[#F3F4F6] pb-4">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#111111]">
+              <SlidersHorizontal className="w-3.5 h-3.5 text-[#2563EB]" />
+              Filter Discovery
             </div>
 
             {hasActiveFilters && (
               <Link
                 href="/events"
-                className="inline-flex items-center gap-1 text-xs font-bold text-orange-400 hover:text-orange-300"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-[#2563EB] hover:underline"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 Reset Filters
@@ -159,34 +184,34 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
 
           {/* Lahore Area Filter */}
           <div className="space-y-2">
-            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5 text-orange-400" />
+            <div className="text-xs font-mono font-semibold text-[#6B7280] uppercase tracking-wider flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-[#2563EB]" />
               Lahore Area:
             </div>
-            <Suspense fallback={<div className="h-10 bg-slate-900/60 rounded-xl animate-pulse" />}>
+            <Suspense fallback={<div className="h-9 bg-[#FAFAF8] rounded-lg animate-pulse" />}>
               <AreaPills currentArea={area} />
             </Suspense>
           </div>
 
           {/* Category Filter */}
           <div className="space-y-2">
-            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-              <Tag className="w-3.5 h-3.5 text-orange-400" />
-              Category:
+            <div className="text-xs font-mono font-semibold text-[#6B7280] uppercase tracking-wider flex items-center gap-1.5">
+              <Tag className="w-3.5 h-3.5 text-[#2563EB]" />
+              Tech Category:
             </div>
-            <Suspense fallback={<div className="h-16 bg-slate-900/60 rounded-2xl animate-pulse" />}>
+            <Suspense fallback={<div className="h-10 bg-[#FAFAF8] rounded-lg animate-pulse" />}>
               <CategoryPills currentCategory={category} />
             </Suspense>
           </div>
 
-          {/* Date & Price Filter Bars */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+          {/* Date & Price Filter Tabs */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-[#F3F4F6]">
             {/* Date filter */}
             <div className="space-y-2">
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+              <div className="text-xs font-mono font-semibold text-[#6B7280] uppercase tracking-wider">
                 Date Horizon:
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {[
                   { label: "All Upcoming", value: "all" },
                   { label: "Today", value: "today" },
@@ -205,10 +230,10 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
                     <Link
                       key={item.value}
                       href={`/events?${newParams.toString()}`}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
                         isActive
-                          ? "bg-orange-600 text-white border-orange-500 shadow-sm"
-                          : "bg-slate-800 text-slate-300 border-slate-700 hover:border-slate-500"
+                          ? "bg-[#111111] text-white border-[#111111]"
+                          : "bg-white text-[#4B5563] border-[#E5E7EB] hover:border-[#D1D5DB]"
                       }`}
                     >
                       {item.label}
@@ -220,14 +245,14 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
 
             {/* Price filter */}
             <div className="space-y-2">
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+              <div className="text-xs font-mono font-semibold text-[#6B7280] uppercase tracking-wider">
                 Admission:
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {[
                   { label: "All Events", value: "all" },
-                  { label: "Free Admission", value: "free" },
-                  { label: "Paid / Ticketed", value: "paid" },
+                  { label: "Free Entry", value: "free" },
+                  { label: "Ticketed", value: "paid" },
                 ].map((item) => {
                   const isActive = priceFilter === item.value;
                   const newParams = new URLSearchParams(params as Record<string, string>);
@@ -240,10 +265,10 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
                     <Link
                       key={item.value}
                       href={`/events?${newParams.toString()}`}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
                         isActive
-                          ? "bg-orange-600 text-white border-orange-500 shadow-sm"
-                          : "bg-slate-800 text-slate-300 border-slate-700 hover:border-slate-500"
+                          ? "bg-[#111111] text-white border-[#111111]"
+                          : "bg-white text-[#4B5563] border-[#E5E7EB] hover:border-[#D1D5DB]"
                       }`}
                     >
                       {item.label}
@@ -255,14 +280,14 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
           </div>
         </div>
 
-        {/* Results Count & Grid */}
+        {/* Results Counter & Grid */}
         <div className="space-y-6">
-          <div className="flex items-center justify-between text-xs font-bold text-slate-400">
+          <div className="flex items-center justify-between text-xs font-medium text-[#6B7280]">
             <span>
-              Showing <span className="text-white font-black">{events.length}</span> verified events in Lahore
+              Showing <span className="text-[#111111] font-bold">{events.length}</span> verified tech events in Lahore
             </span>
             {hasActiveFilters && (
-              <span className="text-orange-400">Filtered results active</span>
+              <span className="text-[#2563EB] font-medium">Filtered results</span>
             )}
           </div>
 
@@ -273,26 +298,27 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
               ))}
             </div>
           ) : (
-            <div className="p-16 text-center rounded-3xl bg-slate-900/60 border border-slate-800 space-y-4">
-              <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mx-auto text-slate-400">
-                <Filter className="w-6 h-6" />
+            <div className="p-16 text-center rounded-2xl bg-white border border-[#E5E7EB] space-y-4">
+              <div className="w-12 h-12 rounded-xl bg-[#F3F4F6] flex items-center justify-center mx-auto text-[#6B7280]">
+                <Filter className="w-5 h-5" />
               </div>
-              <h3 className="text-lg font-bold text-white">No matching events found</h3>
-              <p className="text-sm text-slate-400 max-w-md mx-auto">
-                We couldn't find any events matching your selected filters. Try changing your search keywords or resetting filters.
+              <h3 className="text-base font-bold text-[#111111]">No matching tech events found</h3>
+              <p className="text-xs text-[#6B7280] max-w-md mx-auto">
+                No events currently match your selected filters. Try changing your search keywords or resetting the filters.
               </p>
               <div className="pt-2 flex justify-center gap-3">
                 <Link
                   href="/events"
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-white hover:bg-slate-700 border border-slate-700"
+                  className="px-4 py-2 rounded-lg text-xs font-bold bg-[#F3F4F6] text-[#111111] hover:bg-[#E5E7EB]"
                 >
                   Clear All Filters
                 </Link>
                 <Link
                   href="/submit-event"
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-orange-600 text-white hover:bg-orange-500"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold bg-[#111111] text-white hover:bg-[#2563EB]"
                 >
-                  Post This Event
+                  <PlusCircle className="w-3.5 h-3.5" />
+                  Post an Event
                 </Link>
               </div>
             </div>

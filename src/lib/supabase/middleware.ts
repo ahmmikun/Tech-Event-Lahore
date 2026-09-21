@@ -6,17 +6,14 @@ export async function updateSession(request: NextRequest) {
     request,
   });
 
+  const pathname = request.nextUrl.pathname;
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey =
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  const pathname = request.nextUrl.pathname;
 
-  // Fallback if environment variables are not configured in hosting environment (e.g. Vercel)
   if (!supabaseUrl || !supabaseKey) {
-    console.warn(
-      "Proxy: Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (legacy NEXT_PUBLIC_SUPABASE_ANON_KEY is also supported).",
-    );
     if (
       pathname.startsWith("/submit-event") ||
       pathname.startsWith("/my-events") ||
@@ -55,7 +52,7 @@ export async function updateSession(request: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser();
 
-    // Protect /submit-event and /my-events
+    // Protect /submit-event, /my-events, and /admin for logged out users
     if (
       !user &&
       (pathname.startsWith("/submit-event") ||
@@ -68,15 +65,20 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    // Protect /admin routes by checking user profile role
+    // Protect /admin routes for logged-in users who are non-admin
     if (user && pathname.startsWith("/admin")) {
+      const isSuperAdminEmail =
+        user.email?.toLowerCase() === "sheikhsalmanahmedofficial@gmail.com";
+
       const { data: profile } = await supabase
         .from("profiles")
         .select("role")
         .eq("id", user.id)
         .single();
 
-      if (!profile || profile.role !== "admin") {
+      const isAdmin = isSuperAdminEmail || profile?.role === "admin";
+
+      if (!isAdmin) {
         const url = request.nextUrl.clone();
         url.pathname = "/";
         return NextResponse.redirect(url);

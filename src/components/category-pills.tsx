@@ -3,15 +3,16 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { EVENT_CATEGORIES } from "@/types/database";
 import { 
-  Laptop, 
-  Music, 
-  UtensilsCrossed, 
+  Cpu, 
+  Code2, 
+  Cloud, 
+  Shield, 
+  Rocket, 
   Palette, 
-  Briefcase, 
   Trophy, 
-  BookOpen, 
-  Laugh,
-  Layers
+  GitBranch,
+  Layers,
+  Laptop
 } from "lucide-react";
 
 interface CategoryPillsProps {
@@ -20,14 +21,16 @@ interface CategoryPillsProps {
 }
 
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
-  "Tech & AI": <Laptop className="w-4 h-4" />,
-  "Music & Concerts": <Music className="w-4 h-4" />,
-  "Food & Festivals": <UtensilsCrossed className="w-4 h-4" />,
-  "Art & Culture": <Palette className="w-4 h-4" />,
-  "Business & Startups": <Briefcase className="w-4 h-4" />,
-  "Sports & Fitness": <Trophy className="w-4 h-4" />,
-  "Workshops": <BookOpen className="w-4 h-4" />,
-  "Comedy & Theatre": <Laugh className="w-4 h-4" />,
+  "AI & Machine Learning": <Cpu className="w-3.5 h-3.5" />,
+  "Web Development": <Code2 className="w-3.5 h-3.5" />,
+  "Cloud & DevOps": <Cloud className="w-3.5 h-3.5" />,
+  "Cybersecurity": <Shield className="w-3.5 h-3.5" />,
+  "Startups & Venture": <Rocket className="w-3.5 h-3.5" />,
+  "Design & Product": <Palette className="w-3.5 h-3.5" />,
+  "Hackathons": <Trophy className="w-3.5 h-3.5" />,
+  "Open Source": <GitBranch className="w-3.5 h-3.5" />,
+  "Tech & AI": <Laptop className="w-3.5 h-3.5" />,
+  "Workshops": <Layers className="w-3.5 h-3.5" />,
 };
 
 export function CategoryPills({ currentCategory, className = "" }: CategoryPillsProps) {
@@ -46,16 +49,16 @@ export function CategoryPills({ currentCategory, className = "" }: CategoryPills
   };
 
   return (
-    <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-2.5 ${className}`}>
+    <div className={`flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none ${className}`}>
       <button
         onClick={() => handleSelect("All")}
-        className={`flex items-center justify-center gap-2 p-3 rounded-2xl text-xs font-black transition-all border ${
+        className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold transition-all shrink-0 border ${
           selectedCategory === "All"
-            ? "bg-gradient-to-r from-orange-600 to-amber-600 text-white border-orange-500 shadow-lg shadow-orange-600/30 scale-102"
-            : "bg-slate-900/90 text-slate-300 border-slate-700/70 hover:border-slate-500 hover:text-white"
+            ? "bg-[#111111] text-white border-[#111111] shadow-sm"
+            : "bg-white text-[#4B5563] border-[#E5E7EB] hover:border-[#D1D5DB] hover:text-[#111111]"
         }`}
       >
-        <Layers className="w-4 h-4 text-orange-400" />
+        <Layers className="w-3.5 h-3.5" />
         <span>All</span>
       </button>
 
@@ -65,16 +68,14 @@ export function CategoryPills({ currentCategory, className = "" }: CategoryPills
           <button
             key={cat}
             onClick={() => handleSelect(cat)}
-            className={`flex items-center justify-center gap-2 p-3 rounded-2xl text-xs font-black transition-all border ${
+            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold transition-all shrink-0 border ${
               isActive
-                ? "bg-gradient-to-r from-orange-600 to-amber-600 text-white border-orange-500 shadow-lg shadow-orange-600/30 scale-102"
-                : "bg-slate-900/90 text-slate-300 border-slate-700/70 hover:border-slate-500 hover:text-white"
+                ? "bg-[#2563EB] text-white border-[#2563EB] shadow-sm"
+                : "bg-white text-[#4B5563] border-[#E5E7EB] hover:border-[#D1D5DB] hover:text-[#111111]"
             }`}
           >
-            <span className={isActive ? "text-white" : "text-orange-400"}>
-              {CATEGORY_ICONS[cat] || <Layers className="w-4 h-4" />}
-            </span>
-            <span className="truncate">{cat}</span>
+            <span>{CATEGORY_ICONS[cat] || <Layers className="w-3.5 h-3.5" />}</span>
+            <span>{cat}</span>
           </button>
         );
       })}

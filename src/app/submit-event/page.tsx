@@ -10,7 +10,6 @@ import { ImageUpload } from "@/components/image-upload";
 import { LAHORE_AREAS, EVENT_CATEGORIES } from "@/types/database";
 import { slugify } from "@/lib/utils";
 import { 
-  Sparkles, 
   Send, 
   MapPin, 
   Calendar, 
@@ -19,7 +18,9 @@ import {
   CheckCircle2, 
   ArrowRight,
   Info,
-  Clock
+  Clock,
+  Terminal,
+  FileText
 } from "lucide-react";
 
 export default function SubmitEventPage() {
@@ -36,7 +37,7 @@ export default function SubmitEventPage() {
   const [venueAddress, setVenueAddress] = useState("");
   const [registrationUrl, setRegistrationUrl] = useState("");
   const [dateStart, setDateStart] = useState("");
-  const [timeDisplay, setTimeDisplay] = useState("06:00 PM - 09:00 PM");
+  const [timeDisplay, setTimeDisplay] = useState("06:00 PM - 09:00 PM PKT");
   const [priceType, setPriceType] = useState<"free" | "paid">("free");
   const [priceAmount, setPriceAmount] = useState<number>(0);
   const [imageUrl, setImageUrl] = useState("");
@@ -89,7 +90,7 @@ export default function SubmitEventPage() {
     };
 
     if (!isValidHttpUrl(registrationUrl)) {
-      toast.error("Please enter a valid External Registration URL starting with https:// or http://");
+      toast.error("Please enter a valid Registration URL starting with https:// or http://");
       return;
     }
 
@@ -97,54 +98,49 @@ export default function SubmitEventPage() {
     try {
       const supabase = createClient();
 
-      const finalSlug = slug || slugify(title) || `event-${Date.now()}`;
-      const parsedTags = tags
-        .split(",")
-        .map((t) => t.trim())
-        .filter(Boolean);
+      const finalSlug = slug || slugify(title) || `tech-event-${Date.now()}`;
+
+      const tagsArray = tags
+        ? tags
+            .split(",")
+            .map((t) => t.trim().replace(/^#/, ""))
+            .filter(Boolean)
+        : [];
 
       const payload = {
         title: title.trim(),
         slug: finalSlug,
+        description: description.trim(),
+        short_description: shortDescription.trim() || null,
         category,
-        city_area: cityArea,
+        date_start: new Date(dateStart).toISOString(),
+        time_display: timeDisplay.trim() || null,
         venue_name: venueName.trim(),
         venue_address: venueAddress.trim() || venueName.trim(),
+        city_area: cityArea,
         registration_url: registrationUrl.trim(),
-        date_start: new Date(dateStart).toISOString(),
-        time_display: timeDisplay.trim(),
+        organizer_id: user.id,
+        image_url: imageUrl || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80",
+        status: "pending",
+        featured: false,
         price_type: priceType,
         price_amount: priceType === "free" ? 0 : Number(priceAmount) || 0,
-        image_url: imageUrl || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80",
-        short_description: shortDescription.trim() || description.slice(0, 160),
-        description: description.trim(),
-        tags: parsedTags,
-        organizer_id: user.id,
-        status: "pending", // Always pending for admin review
+        tags: tagsArray,
       };
 
-      const { data, error } = await supabase.from("events").insert(payload).select().single();
+      const { error } = await supabase.from("events").insert(payload);
 
       if (error) {
-        if (error.code === "23505") {
-          // Slug unique violation
-          const uniqueSlug = `${finalSlug}-${Math.floor(1000 + Math.random() * 9000)}`;
-          payload.slug = uniqueSlug;
-          const retry = await supabase.from("events").insert(payload).select().single();
-          if (retry.error) throw retry.error;
-        } else {
-          throw error;
-        }
+        throw error;
       }
 
-      // Success
       setSubmittedSuccess(true);
       confetti({
-        particleCount: 100,
+        particleCount: 120,
         spread: 70,
         origin: { y: 0.6 },
       });
-      toast.success("Event submitted successfully!");
+      toast.success("Event submitted successfully for review!");
     } catch (err: any) {
       console.error("Submission error:", err);
       toast.error(err.message || "Failed to submit event. Please check your inputs.");
@@ -155,111 +151,120 @@ export default function SubmitEventPage() {
 
   if (loadingUser) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-orange-500"></div>
+      <div className="min-h-screen flex items-center justify-center bg-[#FAFAF8]">
+        <div className="flex items-center gap-3 text-xs font-mono text-[#6B7280]">
+          <span className="w-2 h-2 rounded-full bg-[#2563EB] animate-ping" />
+          <span>Verifying organizer authentication...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (submittedSuccess) {
+    return (
+      <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8 flex items-center justify-center bg-[#FAFAF8]">
+        <div className="max-w-md w-full p-8 rounded-2xl bg-white border border-[#E5E7EB] text-center space-y-6 shadow-md animate-in fade-in zoom-in-95">
+          <div className="w-14 h-14 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto border border-emerald-200">
+            <CheckCircle2 className="w-8 h-8" />
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="text-2xl font-extrabold text-[#111111] tracking-tight">
+              Event Submitted!
+            </h2>
+            <p className="text-xs sm:text-sm text-[#4B5563] leading-relaxed">
+              Thank you for submitting your event to the Lahore tech community. Our moderators will review the details and external registration link shortly.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-xl bg-[#FAFAF8] border border-[#E5E7EB] text-left text-xs space-y-2">
+            <div className="font-mono font-bold text-[#111111] uppercase tracking-wider text-[11px]">
+              What happens next?
+            </div>
+            <p className="text-[#6B7280]">
+              1. Verified within 12–24 hours.<br />
+              2. Track progress on your organizer dashboard.<br />
+              3. Once approved, it appears instantly on the directory and homepage bento grid.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            <Link
+              href="/my-events"
+              className="flex-1 py-2.5 px-4 rounded-lg text-xs font-bold text-white bg-[#111111] hover:bg-[#2563EB] transition-colors"
+            >
+              Go to My Submissions
+            </Link>
+            <button
+              onClick={() => {
+                setSubmittedSuccess(false);
+                setTitle("");
+                setSlug("");
+                setDescription("");
+                setVenueName("");
+                setVenueAddress("");
+                setRegistrationUrl("");
+              }}
+              className="flex-1 py-2.5 px-4 rounded-lg text-xs font-bold text-[#111111] bg-[#F3F4F6] hover:bg-[#E5E7EB] transition-colors"
+            >
+              Submit Another
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen py-12">
+    <div className="min-h-screen py-12 bg-[#FAFAF8] text-[#111111]">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        {/* Breadcrumb / Title */}
-        <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs font-black uppercase tracking-wider">
-            <Sparkles className="w-3.5 h-3.5 text-orange-500" />
-            Organizer Portal
+        {/* Header */}
+        <div className="space-y-2 border-b border-[#E5E7EB] pb-6">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-white border border-[#E5E7EB] text-[#111111] text-xs font-mono tracking-wider shadow-sm">
+            <Terminal className="w-3.5 h-3.5 text-[#2563EB]" />
+            ORGANIZER DESK
           </div>
-          <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
-            Post an Event in Lahore
+          <h1 className="text-3xl sm:text-5xl font-extrabold text-[#111111] tracking-tight">
+            Post a Tech Event in Lahore
           </h1>
-          <p className="text-sm sm:text-base text-slate-400">
-            Submit your event for admin approval. Once approved, it will be published to the Lahore directory with your external registration link.
+          <p className="text-xs sm:text-sm text-[#4B5563]">
+            Submit your hackathon, meetup, summit, or demo day. Free listing with direct link to your external ticketing portal.
           </p>
         </div>
 
-        {/* Success Modal / State */}
-        {submittedSuccess ? (
-          <div className="p-8 sm:p-12 rounded-3xl bg-slate-900 border-2 border-emerald-500/40 text-center space-y-6 shadow-2xl animate-in zoom-in-95">
-            <div className="w-16 h-16 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
-              <CheckCircle2 className="w-10 h-10" />
+        {/* Submission Form */}
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* 1. Basic Info */}
+          <div className="p-6 sm:p-8 rounded-2xl bg-white border border-[#E5E7EB] space-y-5 shadow-sm">
+            <div className="flex items-center gap-2 border-b border-[#F3F4F6] pb-3 text-sm font-bold text-[#111111]">
+              <FileText className="w-4 h-4 text-[#2563EB]" />
+              Event Overview
             </div>
 
-            <div className="space-y-2">
-              <h2 className="text-2xl sm:text-3xl font-black text-white">
-                Event Submitted for Review!
-              </h2>
-              <p className="text-sm text-slate-300 max-w-md mx-auto leading-relaxed">
-                Thank you for posting on Event Finder Lahore. Your event has been placed in the moderation queue. Our team reviews submissions to ensure accurate details and working registration links.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
-              <Link
-                href="/my-events"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm text-white bg-orange-600 hover:bg-orange-500 shadow-lg shadow-orange-600/30 transition-all"
-              >
-                <span>Track in My Submissions</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-
-              <button
-                onClick={() => {
-                  setSubmittedSuccess(false);
-                  setTitle("");
-                  setSlug("");
-                  setDescription("");
-                  setShortDescription("");
-                  setVenueName("");
-                  setRegistrationUrl("");
-                  setImageUrl("");
-                }}
-                className="px-5 py-3 rounded-xl font-bold text-sm text-slate-300 bg-slate-800 hover:bg-slate-700 transition-colors"
-              >
-                Submit Another Event
-              </button>
-            </div>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="p-6 sm:p-10 rounded-3xl bg-[#0e1424] border border-slate-800 shadow-2xl space-y-8">
-            {/* Guidelines Banner */}
-            <div className="p-4 rounded-2xl bg-slate-900 border border-slate-700/80 flex items-start gap-3">
-              <Info className="w-5 h-5 text-orange-400 shrink-0 mt-0.5" />
-              <div className="text-xs text-slate-300 space-y-1">
-                <span className="font-bold text-white block">Moderation Notice:</span>
-                All submissions undergo quick review before publishing. Please ensure your external registration link is active (Ticketwala, Eventbrite, Google Form, or company URL).
-              </div>
-            </div>
-
-            {/* Section 1: Event Identity */}
             <div className="space-y-4">
-              <h3 className="text-base font-extrabold uppercase tracking-wider text-orange-400 border-b border-slate-800 pb-2">
-                1. Basic Event Details
-              </h3>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-300">
-                  Event Title <span className="text-orange-500">*</span>
+              <div>
+                <label className="block text-xs font-mono font-bold uppercase tracking-wider text-[#374151] mb-1.5">
+                  Event Title *
                 </label>
                 <input
                   type="text"
                   required
+                  placeholder="e.g. Lahore Generative AI Summit & Hackathon"
                   value={title}
                   onChange={handleTitleChange}
-                  placeholder="e.g. Lahore Tech Summit 2026 or Sufi Night at Alhamra"
-                  className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700/80 text-white placeholder-slate-400 text-sm focus:border-orange-500 focus:outline-none"
+                  className="w-full px-4 py-2.5 rounded-lg bg-[#FAFAF8] border border-[#E5E7EB] text-sm text-[#111111] placeholder-[#9CA3AF] focus:border-[#2563EB] focus:ring-2 focus:ring-blue-100 focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-300">
-                    Category <span className="text-orange-500">*</span>
+                <div>
+                  <label className="block text-xs font-mono font-bold uppercase tracking-wider text-[#374151] mb-1.5">
+                    Category *
                   </label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-orange-500 focus:outline-none cursor-pointer"
+                    className="w-full px-4 py-2.5 rounded-lg bg-[#FAFAF8] border border-[#E5E7EB] text-sm text-[#111111] focus:border-[#2563EB] focus:outline-none"
                   >
                     {EVENT_CATEGORIES.map((cat) => (
                       <option key={cat} value={cat}>
@@ -269,77 +274,14 @@ export default function SubmitEventPage() {
                   </select>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-300">
-                    URL Slug (auto-generated)
-                  </label>
-                  <input
-                    type="text"
-                    value={slug}
-                    onChange={(e) => setSlug(slugify(e.target.value))}
-                    placeholder="lahore-tech-summit-2026"
-                    className="w-full px-4 py-3 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-300 text-sm font-mono focus:border-orange-500 focus:outline-none"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Section 2: Poster Image */}
-            <div className="space-y-4">
-              <h3 className="text-base font-extrabold uppercase tracking-wider text-orange-400 border-b border-slate-800 pb-2">
-                2. Event Poster / Image
-              </h3>
-              <ImageUpload value={imageUrl} onChange={setImageUrl} />
-            </div>
-
-            {/* Section 3: Date, Time & Venue */}
-            <div className="space-y-4">
-              <h3 className="text-base font-extrabold uppercase tracking-wider text-orange-400 border-b border-slate-800 pb-2">
-                3. Date, Time & Lahore Venue
-              </h3>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-300">
-                    Event Date <span className="text-orange-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="date"
-                      required
-                      value={dateStart}
-                      onChange={(e) => setDateStart(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-orange-500 focus:outline-none"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-300">
-                    Time Display (e.g. 06:00 PM - 10:00 PM)
-                  </label>
-                  <div className="relative">
-                    <Clock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="text"
-                      value={timeDisplay}
-                      onChange={(e) => setTimeDisplay(e.target.value)}
-                      placeholder="06:00 PM - 09:30 PM"
-                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-900 border border-slate-700/80 text-white placeholder-slate-400 text-sm focus:border-orange-500 focus:outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-300">
-                    Lahore Locality / Area <span className="text-orange-500">*</span>
+                <div>
+                  <label className="block text-xs font-mono font-bold uppercase tracking-wider text-[#374151] mb-1.5">
+                    Lahore Area / Locality *
                   </label>
                   <select
                     value={cityArea}
                     onChange={(e) => setCityArea(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-sm focus:border-orange-500 focus:outline-none cursor-pointer"
+                    className="w-full px-4 py-2.5 rounded-lg bg-[#FAFAF8] border border-[#E5E7EB] text-sm text-[#111111] focus:border-[#2563EB] focus:outline-none"
                   >
                     {LAHORE_AREAS.map((area) => (
                       <option key={area} value={area}>
@@ -348,180 +290,220 @@ export default function SubmitEventPage() {
                     ))}
                   </select>
                 </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-300">
-                    Venue Name <span className="text-orange-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <MapPin className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="text"
-                      required
-                      value={venueName}
-                      onChange={(e) => setVenueName(e.target.value)}
-                      placeholder="e.g. Alhamra Arts Council, Hall 1"
-                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-900 border border-slate-700/80 text-white placeholder-slate-400 text-sm focus:border-orange-500 focus:outline-none"
-                    />
-                  </div>
-                </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-300">
+              <div>
+                <label className="block text-xs font-mono font-bold uppercase tracking-wider text-[#374151] mb-1.5">
+                  Short Tagline / Summary
+                </label>
+                <input
+                  type="text"
+                  placeholder="One punchy sentence summarizing the event..."
+                  value={shortDescription}
+                  onChange={(e) => setShortDescription(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-lg bg-[#FAFAF8] border border-[#E5E7EB] text-sm text-[#111111] placeholder-[#9CA3AF] focus:border-[#2563EB] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-mono font-bold uppercase tracking-wider text-[#374151] mb-1.5">
+                  Full Description & Agenda *
+                </label>
+                <textarea
+                  required
+                  rows={6}
+                  placeholder="Provide comprehensive details: schedule, keynote speakers, prerequisites, attendee guidelines, etc."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="w-full px-4 py-3 rounded-lg bg-[#FAFAF8] border border-[#E5E7EB] text-sm text-[#111111] placeholder-[#9CA3AF] focus:border-[#2563EB] focus:outline-none leading-relaxed"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* 2. Venue & Date Schedule */}
+          <div className="p-6 sm:p-8 rounded-2xl bg-white border border-[#E5E7EB] space-y-5 shadow-sm">
+            <div className="flex items-center gap-2 border-b border-[#F3F4F6] pb-3 text-sm font-bold text-[#111111]">
+              <Calendar className="w-4 h-4 text-[#2563EB]" />
+              Schedule & Location
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-mono font-bold uppercase tracking-wider text-[#374151] mb-1.5">
+                  Start Date *
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={dateStart}
+                  onChange={(e) => setDateStart(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-lg bg-[#FAFAF8] border border-[#E5E7EB] text-sm text-[#111111] focus:border-[#2563EB] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-mono font-bold uppercase tracking-wider text-[#374151] mb-1.5">
+                  Time Display (e.g. 05:00 PM - 08:00 PM PKT)
+                </label>
+                <input
+                  type="text"
+                  placeholder="06:00 PM - 09:00 PM PKT"
+                  value={timeDisplay}
+                  onChange={(e) => setTimeDisplay(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-lg bg-[#FAFAF8] border border-[#E5E7EB] text-sm text-[#111111] placeholder-[#9CA3AF] focus:border-[#2563EB] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-mono font-bold uppercase tracking-wider text-[#374151] mb-1.5">
+                  Venue Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Arfa Software Technology Park, Level 3"
+                  value={venueName}
+                  onChange={(e) => setVenueName(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-lg bg-[#FAFAF8] border border-[#E5E7EB] text-sm text-[#111111] placeholder-[#9CA3AF] focus:border-[#2563EB] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-mono font-bold uppercase tracking-wider text-[#374151] mb-1.5">
                   Full Street Address
                 </label>
                 <input
                   type="text"
+                  placeholder="e.g. 346-B Ferozepur Road, Lahore"
                   value={venueAddress}
                   onChange={(e) => setVenueAddress(e.target.value)}
-                  placeholder="e.g. 68 Mall Road, Lahore"
-                  className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700/80 text-white placeholder-slate-400 text-sm focus:border-orange-500 focus:outline-none"
+                  className="w-full px-4 py-2.5 rounded-lg bg-[#FAFAF8] border border-[#E5E7EB] text-sm text-[#111111] placeholder-[#9CA3AF] focus:border-[#2563EB] focus:outline-none"
                 />
               </div>
             </div>
+          </div>
 
-            {/* Section 4: External Registration Link & Pricing */}
+          {/* 3. Registration & Ticketing */}
+          <div className="p-6 sm:p-8 rounded-2xl bg-white border border-[#E5E7EB] space-y-5 shadow-sm">
+            <div className="flex items-center gap-2 border-b border-[#F3F4F6] pb-3 text-sm font-bold text-[#111111]">
+              <LinkIcon className="w-4 h-4 text-[#2563EB]" />
+              External Registration & Admission
+            </div>
+
             <div className="space-y-4">
-              <h3 className="text-base font-extrabold uppercase tracking-wider text-orange-400 border-b border-slate-800 pb-2">
-                4. Registration Link & Tickets
-              </h3>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
-                  <span>External Registration / Ticket URL <span className="text-orange-500">*</span></span>
-                  <span className="text-[11px] text-orange-400 font-normal">Attendees click Register & are redirected here</span>
+              <div>
+                <label className="block text-xs font-mono font-bold uppercase tracking-wider text-[#374151] mb-1.5">
+                  External Registration Link *
                 </label>
-                <div className="relative">
-                  <LinkIcon className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="url"
-                    required
-                    value={registrationUrl}
-                    onChange={(e) => setRegistrationUrl(e.target.value)}
-                    placeholder="https://ticketwala.pk/... OR https://forms.gle/... OR https://eventbrite.com/..."
-                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-900 border border-slate-700/80 text-white placeholder-slate-400 text-sm focus:border-orange-500 focus:outline-none font-mono"
-                  />
-                </div>
+                <input
+                  type="url"
+                  required
+                  placeholder="https://luma.com/your-event or https://forms.gle/..."
+                  value={registrationUrl}
+                  onChange={(e) => setRegistrationUrl(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-lg bg-[#FAFAF8] border border-[#E5E7EB] text-sm text-[#111111] placeholder-[#9CA3AF] focus:border-[#2563EB] focus:outline-none"
+                />
+                <p className="text-[11px] text-[#6B7280] mt-1">
+                  Attendees will be directed here (Google Forms, Luma, Eventbrite, Ticketwala, or company website).
+                </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-300">
-                    Pricing Type
+                <div>
+                  <label className="block text-xs font-mono font-bold uppercase tracking-wider text-[#374151] mb-1.5">
+                    Admission Type
                   </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPriceType("free");
-                        setPriceAmount(0);
-                      }}
-                      className={`py-2.5 rounded-xl text-xs font-bold border transition-all ${
-                        priceType === "free"
-                          ? "bg-emerald-600 text-white border-emerald-500 shadow-md"
-                          : "bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-700"
-                      }`}
-                    >
-                      Free Admission
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPriceType("paid")}
-                      className={`py-2.5 rounded-xl text-xs font-bold border transition-all ${
-                        priceType === "paid"
-                          ? "bg-indigo-600 text-white border-indigo-500 shadow-md"
-                          : "bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-700"
-                      }`}
-                    >
+                  <div className="flex items-center gap-4 pt-1">
+                    <label className="flex items-center gap-2 text-xs font-semibold text-[#111111] cursor-pointer">
+                      <input
+                        type="radio"
+                        name="priceType"
+                        value="free"
+                        checked={priceType === "free"}
+                        onChange={() => setPriceType("free")}
+                        className="text-[#2563EB]"
+                      />
+                      Free Entry
+                    </label>
+                    <label className="flex items-center gap-2 text-xs font-semibold text-[#111111] cursor-pointer">
+                      <input
+                        type="radio"
+                        name="priceType"
+                        value="paid"
+                        checked={priceType === "paid"}
+                        onChange={() => setPriceType("paid")}
+                        className="text-[#2563EB]"
+                      />
                       Paid / Ticketed
-                    </button>
+                    </label>
                   </div>
                 </div>
 
                 {priceType === "paid" && (
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-300">
+                  <div>
+                    <label className="block text-xs font-mono font-bold uppercase tracking-wider text-[#374151] mb-1.5">
                       Ticket Price (PKR)
                     </label>
-                    <div className="relative">
-                      <DollarSign className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                      <input
-                        type="number"
-                        min="0"
-                        step="50"
-                        value={priceAmount}
-                        onChange={(e) => setPriceAmount(Number(e.target.value))}
-                        placeholder="1000"
-                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-900 border border-slate-700/80 text-white placeholder-slate-400 text-sm focus:border-orange-500 focus:outline-none"
-                      />
-                    </div>
+                    <input
+                      type="number"
+                      min="0"
+                      step="100"
+                      placeholder="1500"
+                      value={priceAmount}
+                      onChange={(e) => setPriceAmount(Number(e.target.value))}
+                      className="w-full px-4 py-2.5 rounded-lg bg-[#FAFAF8] border border-[#E5E7EB] text-sm text-[#111111] focus:border-[#2563EB] focus:outline-none"
+                    />
                   </div>
                 )}
               </div>
             </div>
+          </div>
 
-            {/* Section 5: Descriptions & Tags */}
-            <div className="space-y-4">
-              <h3 className="text-base font-extrabold uppercase tracking-wider text-orange-400 border-b border-slate-800 pb-2">
-                5. Descriptions & Tags
-              </h3>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-300">
-                  Short Summary (1-2 sentences)
-                </label>
-                <input
-                  type="text"
-                  maxLength={180}
-                  value={shortDescription}
-                  onChange={(e) => setShortDescription(e.target.value)}
-                  placeholder="A quick, catchy overview shown on cards and search results..."
-                  className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700/80 text-white placeholder-slate-400 text-sm focus:border-orange-500 focus:outline-none"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-300">
-                  Full Event Description <span className="text-orange-500">*</span>
-                </label>
-                <textarea
-                  required
-                  rows={5}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Provide schedule, speakers, what attendees should bring, parking info, and details..."
-                  className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700/80 text-white placeholder-slate-400 text-sm focus:border-orange-500 focus:outline-none leading-relaxed"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-300">
-                  Tags (comma separated)
-                </label>
-                <input
-                  type="text"
-                  value={tags}
-                  onChange={(e) => setTags(e.target.value)}
-                  placeholder="e.g. AI, Startups, Networking, Gulberg"
-                  className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700/80 text-white placeholder-slate-400 text-sm focus:border-orange-500 focus:outline-none"
-                />
-              </div>
+          {/* 4. Cover Poster & Media */}
+          <div className="p-6 sm:p-8 rounded-2xl bg-white border border-[#E5E7EB] space-y-5 shadow-sm">
+            <div className="flex items-center gap-2 border-b border-[#F3F4F6] pb-3 text-sm font-bold text-[#111111]">
+              <Terminal className="w-4 h-4 text-[#2563EB]" />
+              Event Poster & Cover Media
             </div>
 
-            {/* Submit CTA */}
-            <div className="pt-4 border-t border-slate-800">
-              <button
-                type="submit"
-                disabled={submitting}
-                className="w-full py-4 px-6 rounded-2xl font-black text-base sm:text-lg text-white bg-gradient-to-r from-orange-600 via-orange-500 to-amber-600 hover:from-orange-500 hover:to-amber-500 shadow-xl shadow-orange-600/35 transition-all flex items-center justify-center gap-2 active:scale-98 disabled:opacity-60"
-              >
-                <Send className="w-5 h-5" />
-                <span>{submitting ? "Submitting Event..." : "Submit Event for Admin Approval"}</span>
-              </button>
+            <ImageUpload value={imageUrl} onChange={setImageUrl} />
+          </div>
+
+          {/* 5. Tags & Topics */}
+          <div className="p-6 sm:p-8 rounded-2xl bg-white border border-[#E5E7EB] space-y-4 shadow-sm">
+            <div>
+              <label className="block text-xs font-mono font-bold uppercase tracking-wider text-[#374151] mb-1.5">
+                Tags (comma separated)
+              </label>
+              <input
+                type="text"
+                placeholder="AI, Nextjs, Hackathon, Networking, Founders"
+                value={tags}
+                onChange={(e) => setTags(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-lg bg-[#FAFAF8] border border-[#E5E7EB] text-sm text-[#111111] placeholder-[#9CA3AF] focus:border-[#2563EB] focus:outline-none"
+              />
             </div>
-          </form>
-        )}
+          </div>
+
+          {/* Submit Button */}
+          <div className="pt-2">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full py-4 px-6 rounded-xl font-bold text-sm sm:text-base text-white bg-[#111111] hover:bg-[#2563EB] shadow-md transition-all active:scale-98 disabled:opacity-70 flex items-center justify-center gap-2"
+            >
+              {submitting ? (
+                <span>Submitting Event...</span>
+              ) : (
+                <>
+                  <Send className="w-4 h-4" />
+                  <span>Submit Event for Approval</span>
+                </>
+              )}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
