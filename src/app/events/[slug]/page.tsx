@@ -16,7 +16,11 @@ import {
   ArrowLeft,
   Navigation,
   CheckCircle2,
-  Terminal
+  Terminal,
+  User,
+  Building2,
+  Video,
+  Globe
 } from "lucide-react";
 
 export const revalidate = 0;
@@ -137,7 +141,12 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
     startDate: event.date_start,
     endDate: event.date_end || event.date_start,
     eventStatus: "https://schema.org/EventScheduled",
-    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+    eventAttendanceMode:
+      event.venue_type === "online"
+        ? "https://schema.org/OnlineEventAttendanceMode"
+        : event.venue_type === "hybrid"
+        ? "https://schema.org/MixedEventAttendanceMode"
+        : "https://schema.org/OfflineEventAttendanceMode",
     location: {
       "@type": "Place",
       name: event.venue_name,
@@ -159,9 +168,18 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
     },
     organizer: {
       "@type": "Organization",
-      name: event.organizer?.full_name || "Lahore Tech Community",
+      name:
+        event.organization_name ||
+        event.organizer_name ||
+        event.organizer?.full_name ||
+        "Lahore Tech Community",
     },
   };
+
+  const isVirtualOrTbd =
+    event.venue_type === "online" ||
+    event.venue_name?.toLowerCase().includes("announced") ||
+    event.venue_name?.toLowerCase().includes("check");
 
   const googleMapsSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
     `${event.venue_name}, ${event.venue_address}, Lahore`
@@ -197,21 +215,41 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
               <MapPin className="w-3 h-3 text-[#2563EB]" />
               {event.city_area}, Lahore
             </span>
+            {event.venue_type === "online" ? (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-purple-50 border border-purple-200 text-purple-700 text-xs font-semibold font-mono">
+                <Video className="w-3 h-3 text-purple-600" />
+                Online / Virtual
+              </span>
+            ) : event.venue_type === "hybrid" ? (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold font-mono">
+                <Globe className="w-3 h-3 text-emerald-600" />
+                Hybrid
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold font-mono">
+                <MapPin className="w-3 h-3 text-[#2563EB]" />
+                Onsite
+              </span>
+            )}
           </div>
 
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold text-[#111111] tracking-tight leading-[1.08]">
             {event.title}
           </h1>
 
-          {/* Editorial Metadata Strip: Date · Time · Venue · Lahore */}
+          {/* Editorial Metadata Strip: Date · Time · Venue · Organization */}
           <div className="text-xs sm:text-sm text-[#6B7280] font-mono flex flex-wrap items-center gap-2 pt-1">
             <span className="text-[#111111] font-semibold">{formatEventDate(event.date_start)}</span>
             <span>·</span>
             <span>{event.time_display || "Time TBD"}</span>
             <span>·</span>
             <span>{event.venue_name}</span>
-            <span>·</span>
-            <span>Lahore, PK</span>
+            {event.organization_name && (
+              <>
+                <span>·</span>
+                <span className="text-[#2563EB] font-bold">By {event.organization_name}</span>
+              </>
+            )}
           </div>
         </div>
 
@@ -263,11 +301,22 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
               {/* Venue & Location */}
               <div className="flex items-start gap-3">
                 <div className="w-9 h-9 rounded-lg bg-[#F3F4F6] flex items-center justify-center text-[#2563EB] shrink-0">
-                  <MapPin className="w-4 h-4" />
+                  {event.venue_type === "online" ? (
+                    <Video className="w-4 h-4 text-purple-600" />
+                  ) : event.venue_type === "hybrid" ? (
+                    <Globe className="w-4 h-4 text-emerald-600" />
+                  ) : (
+                    <MapPin className="w-4 h-4 text-[#2563EB]" />
+                  )}
                 </div>
                 <div className="flex-1">
-                  <div className="text-[11px] font-mono uppercase tracking-wider text-[#6B7280]">
-                    Venue & Location
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] font-mono uppercase tracking-wider text-[#6B7280]">
+                      Venue & Location
+                    </span>
+                    <span className="text-[10px] font-mono font-bold uppercase px-1.5 py-0.5 rounded bg-[#F3F4F6] text-[#4B5563]">
+                      {event.venue_type || "onsite"}
+                    </span>
                   </div>
                   <div className="text-xs sm:text-sm font-bold text-[#111111]">
                     {event.venue_name}
@@ -275,15 +324,27 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                   <div className="text-xs text-[#6B7280] mt-0.5 line-clamp-1">
                     {event.venue_address}
                   </div>
-                  <a
-                    href={googleMapsSearchUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#2563EB] hover:underline mt-1"
-                  >
-                    <Navigation className="w-3 h-3" />
-                    Open in Google Maps ↗
-                  </a>
+                  {isVirtualOrTbd ? (
+                    <a
+                      href={event.registration_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#2563EB] hover:underline mt-1"
+                    >
+                      <Navigation className="w-3 h-3" />
+                      View Location on Official Event Link ↗
+                    </a>
+                  ) : (
+                    <a
+                      href={googleMapsSearchUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#2563EB] hover:underline mt-1"
+                    >
+                      <Navigation className="w-3 h-3" />
+                      Open in Google Maps ↗
+                    </a>
+                  )}
                 </div>
               </div>
             </div>
@@ -345,33 +406,71 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
               {/* Action Buttons with External Redirect */}
               <EventActions event={event} />
 
-              {/* Organizer Card */}
-              {event.organizer && (
-                <div className="pt-4 border-t border-[#F3F4F6] space-y-2">
+              {/* Organizer & Host Card */}
+              {(event.organization_name || event.organizer_name || event.organizer) && (
+                <div className="pt-4 border-t border-[#F3F4F6] space-y-3">
                   <div className="text-[11px] font-mono uppercase tracking-wider text-[#6B7280]">
-                    Organized by:
+                    Organized & Hosted by:
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-md bg-[#F3F4F6] border border-[#E5E7EB] flex items-center justify-center font-bold text-xs text-[#111111]">
-                      {event.organizer.avatar_url ? (
-                        <img
-                          src={event.organizer.avatar_url}
-                          alt="Organizer"
-                          className="w-full h-full rounded-md object-cover"
-                        />
-                      ) : (
-                        event.organizer.email[0].toUpperCase()
-                      )}
+
+                  {/* Organization / Community */}
+                  {event.organization_name && (
+                    <div className="flex items-start gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-[#2563EB] shrink-0">
+                        <Building2 className="w-4 h-4" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold text-[#111111] leading-tight">
+                          {event.organization_name}
+                        </span>
+                        <span className="text-[11px] text-[#6B7280]">
+                          Host Organization / Community
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold text-[#111111]">
-                        {event.organizer.full_name || event.organizer.email.split("@")[0]}
-                      </span>
-                      <span className="text-[11px] text-[#6B7280]">
-                        Verified Community Host
-                      </span>
+                  )}
+
+                  {/* Lead Organizer */}
+                  {event.organizer_name && (
+                    <div className="flex items-start gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-[#F3F4F6] border border-[#E5E7EB] flex items-center justify-center text-[#4B5563] shrink-0">
+                        <User className="w-4 h-4" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold text-[#111111] leading-tight">
+                          {event.organizer_name}
+                        </span>
+                        <span className="text-[11px] text-[#6B7280]">
+                          Lead Organizer / POC
+                        </span>
+                      </div>
                     </div>
-                  </div>
+                  )}
+
+                  {/* Fallback to user account if neither is explicitly specified */}
+                  {!event.organization_name && !event.organizer_name && event.organizer && (
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-md bg-[#F3F4F6] border border-[#E5E7EB] flex items-center justify-center font-bold text-xs text-[#111111]">
+                        {event.organizer.avatar_url ? (
+                          <img
+                            src={event.organizer.avatar_url}
+                            alt="Organizer"
+                            className="w-full h-full rounded-md object-cover"
+                          />
+                        ) : (
+                          event.organizer.email[0].toUpperCase()
+                        )}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold text-[#111111]">
+                          {event.organizer.full_name || event.organizer.email.split("@")[0]}
+                        </span>
+                        <span className="text-[11px] text-[#6B7280]">
+                          Verified Community Host
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

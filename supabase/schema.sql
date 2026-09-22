@@ -33,14 +33,17 @@ CREATE TABLE IF NOT EXISTS public.events (
   date_start TIMESTAMPTZ NOT NULL,
   date_end TIMESTAMPTZ,
   time_display TEXT,
+  venue_type TEXT NOT NULL DEFAULT 'onsite' CHECK (venue_type IN ('onsite', 'online', 'hybrid')),
   venue_name TEXT NOT NULL,
   venue_address TEXT NOT NULL,
   city_area TEXT NOT NULL,
   map_url TEXT,
   registration_url TEXT NOT NULL,
   organizer_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  organizer_name TEXT,
+  organization_name TEXT,
   image_url TEXT,
-  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'archived')),
   rejection_reason TEXT,
   featured BOOLEAN NOT NULL DEFAULT false,
   price_type TEXT NOT NULL DEFAULT 'free' CHECK (price_type IN ('free', 'paid')),
@@ -72,7 +75,13 @@ CREATE POLICY "Users can insert pending events"
 -- Organizers can update their pending/rejected events
 CREATE POLICY "Organizers can update own unapproved events" 
   ON public.events FOR UPDATE 
-  USING (auth.uid() = organizer_id AND status != 'approved');
+  USING (auth.uid() = organizer_id AND status IN ('pending', 'rejected'))
+  WITH CHECK (auth.uid() = organizer_id AND status IN ('pending', 'rejected'));
+
+-- Organizers can delete their own unapproved events
+CREATE POLICY "Organizers can delete own unapproved events" 
+  ON public.events FOR DELETE 
+  USING (auth.uid() = organizer_id AND status IN ('pending', 'rejected'));
 
 -- Admins can do everything on events
 CREATE POLICY "Admins have full access to events" 
@@ -82,6 +91,14 @@ CREATE POLICY "Admins have full access to events"
       SELECT 1 FROM public.profiles 
       WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
     )
+    OR LOWER(auth.jwt()->>'email') = 'sheikhsalmanahmedofficial@gmail.com'
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.profiles 
+      WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
+    )
+    OR LOWER(auth.jwt()->>'email') = 'sheikhsalmanahmedofficial@gmail.com'
   );
 
 -- 3. SITE SETTINGS TABLE
@@ -152,3 +169,45 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- 4. STORAGE BUCKET: EVENT IMAGES
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'event-images',
+  'event-images',
+  true,
+  5242880,
+  ARRAY['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif']
+)
+ON CONFLICT (id) DO UPDATE 
+SET public = true,
+    file_size_limit = 5242880,
+    allowed_mime_types = ARRAY['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif'];
+
+DROP POLICY IF EXISTS "Public Event Images Access" ON storage.objects;
+CREATE POLICY "Public Event Images Access"
+ON storage.objects FOR SELECT
+TO public
+USING (bucket_id = 'event-images');
+
+DROP POLICY IF EXISTS "Authenticated users can upload event images" ON storage.objects;
+DROP POLICY IF EXISTS "Allow uploads to event-images" ON storage.objects;
+CREATE POLICY "Allow uploads to event-images"
+ON storage.objects FOR INSERT
+TO public
+WITH CHECK (bucket_id = 'event-images');
+
+DROP POLICY IF EXISTS "Authenticated users can update event images" ON storage.objects;
+DROP POLICY IF EXISTS "Allow updates to event-images" ON storage.objects;
+CREATE POLICY "Allow updates to event-images"
+ON storage.objects FOR UPDATE
+TO public
+USING (bucket_id = 'event-images')
+WITH CHECK (bucket_id = 'event-images');
+
+DROP POLICY IF EXISTS "Authenticated users can delete event images" ON storage.objects;
+DROP POLICY IF EXISTS "Allow deletes to event-images" ON storage.objects;
+CREATE POLICY "Allow deletes to event-images"
+ON storage.objects FOR DELETE
+TO public
+USING (bucket_id = 'event-images');

@@ -76,10 +76,17 @@ export function EventCard({ event, priority = false }: EventCardProps) {
         <div className="space-y-2">
           {/* Locality & Time */}
           <div className="flex items-center justify-between text-xs text-[#6B7280]">
-            <span className="flex items-center gap-1 text-[#111111] font-semibold truncate">
-              <MapPin className="w-3 h-3 text-[#2563EB] shrink-0" />
-              {event.city_area}
-            </span>
+            <div className="flex items-center gap-1.5 truncate">
+              <span className="flex items-center gap-1 text-[#111111] font-semibold truncate">
+                <MapPin className="w-3 h-3 text-[#2563EB] shrink-0" />
+                {event.city_area}
+              </span>
+              {event.venue_type && event.venue_type !== "onsite" && (
+                <span className="text-[10px] font-mono font-bold uppercase px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200">
+                  {event.venue_type}
+                </span>
+              )}
+            </div>
             {event.time_display && (
               <span className="text-[11px] text-[#6B7280] shrink-0 font-mono">
                 {event.time_display.split("-")[0]}
@@ -99,10 +106,17 @@ export function EventCard({ event, priority = false }: EventCardProps) {
             {event.short_description || event.description}
           </p>
 
-          <p className="text-[11px] text-[#6B7280] truncate flex items-center gap-1 pt-1 font-mono">
-            <span>Venue:</span>
-            <span className="text-[#111111] font-sans font-medium">{event.venue_name}</span>
-          </p>
+          <div className="pt-1 space-y-0.5">
+            <p className="text-[11px] text-[#6B7280] truncate flex items-center gap-1 font-mono">
+              <span>Venue:</span>
+              <span className="text-[#111111] font-sans font-medium truncate">{event.venue_name}</span>
+            </p>
+            {(event.organization_name || event.organizer_name) && (
+              <p className="text-[11px] text-[#2563EB] font-mono font-medium truncate">
+                Host: {event.organization_name || event.organizer_name}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Action Buttons */}

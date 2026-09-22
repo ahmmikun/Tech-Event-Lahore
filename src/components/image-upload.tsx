@@ -4,36 +4,13 @@ import { useState, useRef } from "react";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
-import { UploadCloud, X, Loader2, Sparkles } from "lucide-react";
+import { UploadCloud, X, Loader2, Link as LinkIcon } from "lucide-react";
 
 interface ImageUploadProps {
   value: string;
   onChange: (url: string) => void;
   className?: string;
 }
-
-const PRESET_IMAGES = [
-  {
-    name: "AI & Hackathon",
-    url: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1200&q=80",
-  },
-  {
-    name: "Developer Meetup",
-    url: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80",
-  },
-  {
-    name: "Startup Pitch",
-    url: "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80",
-  },
-  {
-    name: "Cloud & Tech",
-    url: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80",
-  },
-  {
-    name: "Product & Design",
-    url: "https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?auto=format&fit=crop&w=1200&q=80",
-  },
-];
 
 export function ImageUpload({ value, onChange, className = "" }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
@@ -79,7 +56,27 @@ export function ImageUpload({ value, onChange, className = "" }: ImageUploadProp
       toast.success("Event poster uploaded successfully!");
     } catch (err: any) {
       console.error("Upload error:", err);
-      toast.error(err.message || "Failed to upload image. You can also pick a preset image below.");
+      const isBucketNotFound =
+        err?.message?.includes("Bucket not found") ||
+        err?.statusCode === "404" ||
+        err?.status === 404;
+
+      if (isBucketNotFound) {
+        toast.error(
+          "Supabase Storage bucket 'event-images' not found. Please create the public bucket 'event-images' in Supabase or paste an image URL below directly."
+        );
+      } else if (
+        err?.message?.includes("row-level security") ||
+        err?.message?.includes("AccessDenied") ||
+        err?.statusCode === "403" ||
+        err?.status === 403
+      ) {
+        toast.error(
+          "Upload permission denied by Supabase storage policy. Please run the policies in supabase/migrations/20260922_create_storage_bucket.sql in your Supabase SQL Editor, or paste an image URL below directly."
+        );
+      } else {
+        toast.error(err.message || "Failed to upload image. Please try again or paste an image URL below.");
+      }
     } finally {
       setUploading(false);
     }
@@ -108,6 +105,7 @@ export function ImageUpload({ value, onChange, className = "" }: ImageUploadProp
               type="button"
               onClick={() => onChange("")}
               className="p-2 rounded-lg text-white bg-red-600 hover:bg-red-700"
+              title="Remove image"
             >
               <X className="w-4 h-4" />
             </button>
@@ -148,27 +146,20 @@ export function ImageUpload({ value, onChange, className = "" }: ImageUploadProp
         className="hidden"
       />
 
-      {/* Preset images picker */}
-      <div className="space-y-2">
-        <div className="text-[11px] font-bold text-[#6B7280] uppercase tracking-wider flex items-center gap-1">
-          <Sparkles className="w-3 h-3 text-[#2563EB]" />
-          Or choose from tech presets:
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {PRESET_IMAGES.map((preset) => (
-            <button
-              key={preset.name}
-              type="button"
-              onClick={() => onChange(preset.url)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${
-                value === preset.url
-                  ? "bg-[#111111] text-white border-[#111111]"
-                  : "bg-white text-[#4B5563] border-[#E5E7EB] hover:border-[#D1D5DB]"
-              }`}
-            >
-              {preset.name}
-            </button>
-          ))}
+      {/* Direct Image URL input */}
+      <div className="space-y-1.5">
+        <label className="block text-xs font-mono font-bold uppercase tracking-wider text-[#374151]">
+          Or paste image URL directly
+        </label>
+        <div className="relative">
+          <LinkIcon className="w-3.5 h-3.5 text-[#9CA3AF] absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <input
+            type="url"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder="https://example.com/poster-image.jpg"
+            className="w-full pl-9 pr-4 py-2 rounded-lg bg-[#FAFAF8] border border-[#E5E7EB] text-xs text-[#111111] placeholder-[#9CA3AF] focus:border-[#2563EB] focus:outline-none"
+          />
         </div>
       </div>
     </div>

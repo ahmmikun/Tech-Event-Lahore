@@ -1,6 +1,7 @@
 export type UserRole = 'user' | 'admin';
-export type EventStatus = 'pending' | 'approved' | 'rejected';
+export type EventStatus = 'pending' | 'approved' | 'rejected' | 'archived';
 export type PriceType = 'free' | 'paid';
+export type VenueType = 'onsite' | 'online' | 'hybrid';
 
 export interface Profile {
   id: string;
@@ -22,12 +23,15 @@ export interface EventItem {
   date_start: string;
   date_end: string | null;
   time_display: string | null;
+  venue_type?: VenueType;
   venue_name: string;
   venue_address: string;
   city_area: string;
   map_url: string | null;
   registration_url: string;
   organizer_id: string | null;
+  organizer_name?: string | null;
+  organization_name?: string | null;
   image_url: string | null;
   status: EventStatus;
   rejection_reason: string | null;
