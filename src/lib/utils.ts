@@ -86,3 +86,25 @@ export function buildTwitterShareUrl(title: string, url: string): string {
 export function buildLinkedInShareUrl(url: string): string {
   return `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
 }
+
+/**
+ * Returns the correct base URL for redirects (OAuth, emails, etc.)
+ * Works dynamically in localhost, Vercel preview deployments, and custom production domains.
+ */
+export function getURL(): string {
+  let url =
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    process.env.NEXT_PUBLIC_VERCEL_URL ??
+    (typeof window !== "undefined" ? window.location.origin : "http://localhost:3000");
+
+  // In browser, window.location.origin is authoritative when active
+  if (typeof window !== "undefined" && window.location?.origin) {
+    url = window.location.origin;
+  }
+
+  // Ensure protocol
+  url = url.includes("http") ? url : `https://${url}`;
+  // Ensure trailing slash
+  url = url.endsWith("/") ? url : `${url}/`;
+  return url;
+}

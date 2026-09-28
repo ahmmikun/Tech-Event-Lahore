@@ -13,6 +13,7 @@ import {
   ArrowRight,
   Loader2,
 } from "lucide-react";
+import { getURL } from "@/lib/utils";
 
 function LoginForm() {
   const router = useRouter();
@@ -31,11 +32,11 @@ function LoginForm() {
     setErrorMessage("");
     try {
       const supabase = createClient();
-      const origin = window.location.origin;
+      const redirectBase = getURL();
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "github",
         options: {
-          redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}`,
+          redirectTo: `${redirectBase}auth/callback?next=${encodeURIComponent(next)}`,
         },
       });
       if (error) {
