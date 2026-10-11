@@ -14,7 +14,6 @@ import {
   ArrowRight,
   Loader2,
 } from "lucide-react";
-import { getURL } from "@/lib/utils";
 
 function SignUpForm() {
   const router = useRouter();
@@ -25,36 +24,7 @@ function SignUpForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [githubLoading, setGitHubLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-
-  const handleGitHubLogin = async () => {
-    setGitHubLoading(true);
-    setErrorMessage("");
-    try {
-      const supabase = createClient();
-      const redirectBase = getURL();
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "github",
-        options: {
-          redirectTo: `${redirectBase}auth/callback?next=${encodeURIComponent(next)}`,
-        },
-      });
-      if (error) {
-        setErrorMessage(error.message);
-        toast.error(error.message);
-      }
-    } catch (err: unknown) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : "Failed to initiate GitHub sign in";
-      setErrorMessage(message);
-      toast.error(message);
-    } finally {
-      setGitHubLoading(false);
-    }
-  };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,46 +92,17 @@ function SignUpForm() {
 
       {/* Error Alert */}
       {errorMessage && (
-        <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-          <span>{errorMessage}</span>
+        <div className="p-3.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2.5">
+          <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+          <div className="space-y-0.5">
+            <span className="font-bold text-rose-900 block">Authentication Error</span>
+            <span className="text-rose-700 leading-relaxed block">{errorMessage}</span>
+          </div>
         </div>
       )}
 
       {/* Card */}
       <div className="p-8 rounded-2xl bg-white border border-[#E5E7EB] shadow-md space-y-6">
-        {/* GitHub Sign In Button */}
-        <button
-          type="button"
-          onClick={handleGitHubLogin}
-          disabled={githubLoading || loading}
-          className="w-full py-3 px-4 rounded-lg font-bold text-xs sm:text-sm text-[#111111] bg-white border border-[#E5E7EB] hover:bg-[#F9FAFB] hover:border-[#D1D5DB] transition-all flex items-center justify-center gap-3 shadow-sm active:scale-98 disabled:opacity-60 cursor-pointer"
-        >
-          {githubLoading ? (
-            <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
-          ) : (
-            <svg
-              className="w-4 h-4 fill-current"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path d="M12 .75a11.25 11.25 0 0 0-3.558 21.923c.563.104.768-.244.768-.542 0-.267-.01-.975-.015-1.914-3.13.68-3.791-1.508-3.791-1.508-.512-1.3-1.25-1.646-1.25-1.646-1.022-.699.077-.685.077-.685 1.13.08 1.725 1.16 1.725 1.16 1.005 1.723 2.637 1.225 3.279.937.102-.728.393-1.225.715-1.507-2.498-.284-5.124-1.249-5.124-5.56 0-1.228.439-2.232 1.16-3.019-.116-.284-.503-1.428.11-2.977 0 0 .945-.303 3.094 1.153A10.79 10.79 0 0 1 12 6.185c.956.004 1.919.129 2.818.38 2.148-1.456 3.09-1.153 3.09-1.153.615 1.549.228 2.693.112 2.977.723.787 1.158 1.791 1.158 3.019 0 4.322-2.63 5.273-5.136 5.552.404.348.766 1.033.766 2.083 0 1.504-.014 2.718-.014 3.088 0 .3.203.651.774.541A11.252 11.252 0 0 0 12 .75Z" />
-            </svg>
-          )}
-          <span>
-            {githubLoading
-              ? "Connecting with GitHub..."
-              : "Sign up with GitHub"}
-          </span>
-        </button>
-
-        <div className="relative flex items-center justify-center">
-          <div className="border-t border-[#E5E7EB] w-full" />
-          <span className="bg-white px-3 text-[11px] font-mono uppercase tracking-wider text-[#6B7280] relative">
-            Or with email
-          </span>
-        </div>
-
         {/* Form */}
         <form onSubmit={handleSignUp} className="space-y-4">
           <div className="space-y-1.5">
@@ -218,7 +159,7 @@ function SignUpForm() {
 
           <button
             type="submit"
-            disabled={loading || githubLoading}
+            disabled={loading}
             className="w-full py-3 rounded-lg font-bold text-xs sm:text-sm text-white bg-[#111111] hover:bg-[#2563EB] shadow-sm transition-all flex items-center justify-center gap-2 active:scale-98 disabled:opacity-60 cursor-pointer"
           >
             <span>{loading ? "Creating Account..." : "Create Account"}</span>
